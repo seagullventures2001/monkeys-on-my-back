@@ -1,0 +1,93 @@
+# Monkeys on My Back
+
+A playful tracker for the medium-to-big jobs that keep getting pushed aside: clean the BBQ, trim the tree, gurney the house, finish the course. Each job is a monkey on a tree. The longer it hangs around, the bigger and grumpier it gets. Feed it a banana when it's done and it jumps off your back.
+
+## Run it (no setup needed)
+
+```bash
+npm install
+npm run dev
+```
+
+Open the URL Vite prints (usually http://localhost:5173). It starts in **on-device mode**: monkeys are saved in your browser, and the tree comes with six example monkeys you can clear in Settings.
+
+## What's in this first version
+
+- **Tree screen**: monkeys sit on branches, oldest at the top. Size and grumpiness grow with age.
+- **Feed a banana**: the monkey grabs a banana and leaps off; the rest shuffle up. Undo for a few seconds afterwards.
+- **Add a monkey**: job, size (15 min → full day, or ongoing), and how long it's *already* been nagging you, so old jobs start at the right size.
+- **Weekend nudge**: picks the oldest job that fits your next free pocket (quick jobs on weeknights, bigger ones on weekend mornings, looks ahead to Saturday from Friday afternoon).
+- **Bananas fed**: history of finished jobs, with "put back" if you ticked one off too early.
+- **Settings**: sign in to sync (once Supabase is set up), copy device monkeys to your account, clear example monkeys, turn on weekend notifications (phone only).
+
+## Project layout
+
+```
+src/
+  lib/monkey.ts        types, age/mood/size rules (pure, tested)
+  lib/nudge.ts         which monkey to suggest and when (pure, tested)
+  lib/layout.ts        seats on the tree (pure, tested)
+  lib/notifications.ts Saturday 8am local notification on iOS/Android
+  data/localRepo.ts    on-device storage
+  data/supabaseRepo.ts Supabase storage
+  stores/troop.ts      Pinia store; picks local or Supabase automatically
+  components/          MonkeyFace, TroopTree, NudgeCard, MonkeySheet, AddMonkeyDialog
+  views/               TreeView, FedView, SettingsView
+supabase/
+  migrations/          database schema + row-level security
+  tests/rls-test.mjs   checks the security rules as two different users
+```
+
+## Checks
+
+```bash
+npm test          # unit tests for ages, moods, sizes, seating and nudges
+npm run test:db   # runs the migration in an in-process Postgres and checks the security rules
+npm run build     # type-check + production build
+```
+
+All three pass in this version.
+
+## Turning on accounts (Supabase)
+
+1. Create a project at supabase.com.
+2. In the SQL editor, run `supabase/migrations/20261015000000_init.sql` (or use the Supabase CLI: `supabase db push`).
+3. **Authentication → URL configuration**: add `http://localhost:5173` to the redirect URLs.
+4. Copy `.env.example` to `.env.local` and fill in the project URL and anon key (Project settings → API).
+5. Restart `npm run dev`. Settings now shows "Email me a sign-in link".
+
+### How the data and security work
+
+- Every user gets a personal **troop** on sign-up (a database trigger creates it).
+- Monkeys belong to a troop, not a person. Household sharing later = adding a row to `troop_members`. No schema change needed.
+- Row-level security is on for every table. Only members of a troop can see or change its monkeys; the owner controls who's in it; anyone can leave a troop they don't own; personal troops can't be deleted.
+- `fed_by` is set by the database from the signed-in user, so it can't be faked.
+- `npm run test:db` proves all of the above (18 checks). Re-run it whenever you change a policy.
+
+## Phones (Capacitor)
+
+```bash
+npx cap add ios        # needs a Mac with Xcode
+npx cap add android    # needs Android Studio
+npm run cap:sync
+npx cap open ios       # or: npx cap open android
+```
+
+Change `appId` in `capacitor.config.ts` to a reverse domain you own before publishing.
+
+### Home screen widget (next step)
+
+Widgets have to be native code: **WidgetKit (Swift)** on iOS and **App Widgets (Kotlin)** on Android. The plan:
+
+1. The app writes a tiny summary (count, oldest monkey, nudge text) to shared storage whenever the troop changes: an App Group `UserDefaults` on iOS, `SharedPreferences` on Android. A small Capacitor plugin can do this.
+2. The widget reads that summary and draws the monkey + number. No network calls from the widget.
+
+The data the widget needs already exists: `store.onBack.length`, `store.onBack[0]` (oldest) and `store.nudge`.
+
+## Known gaps / ideas for next
+
+- Household sharing UI (invite by email). The database already supports it.
+- Seasonal or "before an event" reminders ("clean the BBQ before summer").
+- Real-time sync between devices (Supabase Realtime on the `monkeys` table).
+- Dark mode.
+- Fonts load from Google Fonts; bundle them locally before shipping the phone app so it works offline.
