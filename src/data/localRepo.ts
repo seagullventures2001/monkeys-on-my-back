@@ -18,7 +18,7 @@ function demoMonkeys(): Monkey[] {
   return [
     { ...base, id: `${DEMO_PREFIX}course`, title: 'Finish the online course', effort: 'ongoing', createdAt: daysAgo(240) },
     { ...base, id: `${DEMO_PREFIX}gurney`, title: 'Gurney the house', effort: 'full', createdAt: daysAgo(150) },
-    { ...base, id: `${DEMO_PREFIX}tree`, title: 'Trim the front tree', effort: 'half', createdAt: daysAgo(90) },
+    { ...base, id: `${DEMO_PREFIX}tree`, title: 'Trim the front tree', effort: 'half', createdAt: daysAgo(60) },
     { ...base, id: `${DEMO_PREFIX}bbq`, title: 'Clean the BBQ', effort: 'hour', createdAt: daysAgo(42) },
     { ...base, id: `${DEMO_PREFIX}door`, title: 'Repaint the back door', effort: 'half', createdAt: daysAgo(21) },
     { ...base, id: `${DEMO_PREFIX}gate`, title: 'Fix the gate latch', effort: 'quick', createdAt: daysAgo(7) },

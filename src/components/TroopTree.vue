@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import MonkeyFace from './MonkeyFace.vue'
+import MonkeyFigure from './MonkeyFigure.vue'
 import BananaIcon from './BananaIcon.vue'
 import { formatAge, moodFor, type Monkey } from '@/lib/monkey'
 import { placeMonkeys, TREE_H, TREE_W } from '@/lib/layout'
@@ -41,12 +41,11 @@ const layout = computed(() => placeMonkeys(props.monkeys, now))
         :aria-pressed="p.monkey.id === selectedId"
         @click="emit('select', p.monkey.id)"
       >
-        <MonkeyFace :mood="moodFor(p.monkey.createdAt, now)" />
+        <MonkeyFigure :mood="moodFor(p.monkey.createdAt, now)" />
         <span class="banana"><BananaIcon :size="28" /></span>
       </button>
     </TransitionGroup>
 
-    <p v-if="layout.overflow > 0" class="overflow">+{{ layout.overflow }} more in the leaves</p>
   </div>
 </template>
 
@@ -65,11 +64,11 @@ const layout = computed(() => placeMonkeys(props.monkeys, now))
 
 .monkey {
   position: absolute;
-  aspect-ratio: 1;
+  aspect-ratio: 100 / 130;
   padding: 0;
   border: 0;
   background: transparent;
-  border-radius: 50%;
+  border-radius: 40% 40% 30% 30%;
   cursor: pointer;
   /* When a monkey leaves, the others shuffle up into the free seats. */
   transition:
@@ -156,15 +155,4 @@ const layout = computed(() => placeMonkeys(props.monkeys, now))
   }
 }
 
-.overflow {
-  position: absolute;
-  right: 4px;
-  bottom: 10px;
-  margin: 0;
-  background: var(--white);
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 13px;
-  font-weight: 700;
-}
 </style>
