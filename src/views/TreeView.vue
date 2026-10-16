@@ -24,6 +24,8 @@ const showWaiting = ref(false)
 // The monkey being celebrated, and the one still waving goodbye on the tree afterwards.
 const celebrating = ref<Monkey | null>(null)
 const leaving = ref<Monkey | null>(null)
+// It stays in its usual mood until it has had the banana, then smiles as it leaves.
+const happyId = ref<string | null>(null)
 
 // A fed monkey stays on its branch (smiling) until you tap Continue, then fades away.
 const troop = computed(() => splitTroop(leaving.value ? [...store.onBack, leaving.value] : store.onBack))
@@ -65,9 +67,11 @@ async function feed(id: string) {
 function finishCelebration() {
   const monkey = celebrating.value
   celebrating.value = null
+  happyId.value = monkey?.id ?? null
   // Let the celebration fade out first, then the monkey leaves the tree.
   setTimeout(() => {
     leaving.value = null
+    happyId.value = null
     if (monkey) showToast(monkey.id, monkey.title)
   }, 450)
 }
@@ -134,7 +138,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
     <NudgeCard v-if="store.nudge" :nudge="store.nudge" class="nudge" @open="select" />
 
     <div class="tree-wrap">
-      <TroopTree :monkeys="troop.onTree" :selected-id="selectedId" :happy-id="leaving?.id ?? null" @select="select" />
+      <TroopTree :monkeys="troop.onTree" :selected-id="selectedId" :happy-id="happyId" @select="select" />
     </div>
 
     <button v-if="troop.waiting.length" type="button" class="waiting" @click="showWaiting = true">
