@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Leafy green tile with a very happy monkey face. Content sits inside the
+       central 80% so it survives Android's round/squircle masks. -->
+  <rect width="512" height="512" fill="#EAF2E3"/>
+  <circle cx="256" cy="256" r="232" fill="#CFE3BF"/>
+  <g transform="translate(76 70) scale(3.6)">
+    <circle cx="15" cy="50" r="14" fill="#8A5A3B"/>
+    <circle cx="85" cy="50" r="14" fill="#8A5A3B"/>
+    <circle cx="15" cy="50" r="7.5" fill="#E9C9A1"/>
+    <circle cx="85" cy="50" r="7.5" fill="#E9C9A1"/>
+    <circle cx="50" cy="52" r="37" fill="#8A5A3B"/>
+    <path d="M50 38 C44 28 26 30 26 46 C26 54 29 59 31 62 C30 76 40 84 50 84 C60 84 70 76 69 62 C71 59 74 54 74 46 C74 30 56 28 50 38 Z" fill="#E9C9A1"/>
+    <g fill="#F2A08A" opacity="0.55">
+      <ellipse cx="33" cy="62" rx="5" ry="3.2"/>
+      <ellipse cx="67" cy="62" rx="5" ry="3.2"/>
+    </g>
+    <path d="M35 51 Q40 44 45 51 M55 51 Q60 44 65 51" fill="none" stroke="#2A1A10" stroke-width="3.4" stroke-linecap="round"/>
+    <ellipse cx="50" cy="61" rx="3.5" ry="2.2" fill="#6B4A2B"/>
+    <path d="M39 66 Q50 82 61 66 Z" fill="#5A2A1C" stroke="#2A1A10" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M44 73 Q50 78 56 73 Q50 71 44 73 Z" fill="#E46F6F"/>
+  </g>
+</svg>

@@ -64,6 +64,25 @@ All three pass in this version.
 - `fed_by` is set by the database from the signed-in user, so it can't be faked.
 - `npm run test:db` proves all of the above (18 checks). Re-run it whenever you change a policy.
 
+## Putting it online (Vercel) and on your phone
+
+The app is an installable web app: it has a home-screen icon, opens full screen, and works offline (your monkeys still need a connection to sync).
+
+1. Go to vercel.com, sign in with GitHub, click **Add New → Project** and import `monkeys-on-my-back`.
+2. Vercel detects Vite. Leave the build settings as they are.
+3. Under **Environment Variables**, add the same two values as your `.env.local`:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+4. Click **Deploy**. You get an address like `https://monkeys-on-my-back.vercel.app`.
+5. In Supabase, **Authentication → URL Configuration**: set **Site URL** to that address and add it under **Redirect URLs** (keep `http://localhost:5173` there too for local testing).
+6. On your phone, open the address:
+   - **iPhone (Safari):** Share button → **Add to Home Screen**.
+   - **Android (Chrome):** menu → **Install app** (or **Add to Home screen**).
+
+Every push to `main` redeploys automatically. `vercel.json` (and `public/_redirects` for Netlify) make page refreshes on `/fed` or `/settings` work.
+
+If an update doesn't appear on your phone, close the app fully and reopen it: the new version loads in the background and takes over on the next launch.
+
 ## Phones (Capacitor)
 
 ```bash
@@ -90,4 +109,3 @@ The data the widget needs already exists: `store.onBack.length`, `store.onBack[0
 - Seasonal or "before an event" reminders ("clean the BBQ before summer").
 - Real-time sync between devices (Supabase Realtime on the `monkeys` table).
 - Dark mode.
-- Fonts load from Google Fonts; bundle them locally before shipping the phone app so it works offline.
