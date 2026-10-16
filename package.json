@@ -8,7 +8,7 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:db": "node supabase/tests/rls-test.mjs supabase/migrations/20261015000000_init.sql",
+    "test:db": "node supabase/tests/rls-test.mjs supabase/migrations/*.sql",
     "typecheck": "vue-tsc --noEmit",
     "cap:sync": "npm run build && cap sync"
   },

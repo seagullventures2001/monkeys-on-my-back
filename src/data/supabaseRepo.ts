@@ -10,9 +10,10 @@ interface MonkeyRow {
   effort: Effort
   created_at: string
   fed_at: string | null
+  due_on: string | null
 }
 
-const COLUMNS = 'id, troop_id, title, notes, effort, created_at, fed_at'
+const COLUMNS = 'id, troop_id, title, notes, effort, created_at, fed_at, due_on'
 
 function toMonkey(row: MonkeyRow): Monkey {
   return {
@@ -23,6 +24,7 @@ function toMonkey(row: MonkeyRow): Monkey {
     effort: row.effort,
     createdAt: row.created_at,
     fedAt: row.fed_at,
+    dueOn: row.due_on,
   }
 }
 
@@ -62,6 +64,7 @@ export function createSupabaseRepo(client: SupabaseClient, troopId: string): Mon
             title: input.title.trim(),
             notes: input.notes?.trim() || null,
             effort: input.effort,
+            due_on: input.dueOn ?? null,
             created_by: userData.user?.id,
             ...(input.createdAt ? { created_at: input.createdAt } : {}),
           })
@@ -71,7 +74,9 @@ export function createSupabaseRepo(client: SupabaseClient, troopId: string): Mon
     },
 
     async update(id: string, patch: EditableFields) {
-      return one(client.from('monkeys').update(patch).eq('id', id).select(COLUMNS).single())
+      const { dueOn, ...rest } = patch
+      const row = dueOn === undefined ? rest : { ...rest, due_on: dueOn }
+      return one(client.from('monkeys').update(row).eq('id', id).select(COLUMNS).single())
     },
 
     async feed(id: string) {

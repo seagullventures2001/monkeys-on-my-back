@@ -4,12 +4,24 @@ import MonkeyFigure from './MonkeyFigure.vue'
 import BananaIcon from './BananaIcon.vue'
 import { formatAge, moodFor, type Monkey } from '@/lib/monkey'
 import { placeMonkeys, TREE_H, TREE_W } from '@/lib/layout'
+import { daysUntil, dueLabel, dueTag, isDueSoon } from '@/lib/due'
 
 const props = defineProps<{ monkeys: Monkey[]; selectedId: string | null }>()
 const emit = defineEmits<{ select: [id: string] }>()
 
 const now = new Date()
-const layout = computed(() => placeMonkeys(props.monkeys, now))
+const layout = computed(() =>
+  placeMonkeys(props.monkeys, now).placed.map((p) => {
+    const soon = isDueSoon(p.monkey.dueOn, now)
+    const age = `on your back for ${formatAge(p.monkey.createdAt, now)}`
+    return {
+      ...p,
+      tag: soon ? dueTag(p.monkey.dueOn!, now) : null,
+      late: soon && daysUntil(p.monkey.dueOn!, now) < 0,
+      label: `${p.monkey.title}, ${soon ? `${dueLabel(p.monkey.dueOn!, now).toLowerCase()}, ` : ''}${age}`,
+    }
+  }),
+)
 </script>
 
 <template>
@@ -31,18 +43,19 @@ const layout = computed(() => placeMonkeys(props.monkeys, now))
 
     <TransitionGroup name="monkey">
       <button
-        v-for="p in layout.placed"
+        v-for="p in layout"
         :key="p.monkey.id"
         type="button"
         class="monkey"
         :class="{ selected: p.monkey.id === selectedId }"
         :style="{ left: `${p.left}%`, top: `${p.top}%`, width: `${p.width}%` }"
-        :aria-label="`${p.monkey.title}, on your back for ${formatAge(p.monkey.createdAt, now)}`"
+        :aria-label="p.label"
         :aria-pressed="p.monkey.id === selectedId"
         @click="emit('select', p.monkey.id)"
       >
         <MonkeyFigure :mood="moodFor(p.monkey.createdAt, now)" />
         <span class="banana"><BananaIcon :size="28" /></span>
+        <span v-if="p.tag" class="due-tag" :class="{ late: p.late }" aria-hidden="true">{{ p.tag }}</span>
       </button>
     </TransitionGroup>
 
@@ -86,6 +99,28 @@ const layout = computed(() => placeMonkeys(props.monkeys, now))
   outline: 3px solid var(--banana-deep);
   outline-offset: 2px;
   background: rgba(242, 194, 48, 0.18);
+}
+
+/* Small date tag for anything due within a week. */
+.due-tag {
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  transform: translateX(-50%);
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--due);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.5;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(30, 58, 43, 0.3);
+  pointer-events: none;
+}
+
+.due-tag.late {
+  background: var(--danger);
 }
 
 .banana {

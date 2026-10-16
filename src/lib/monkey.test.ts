@@ -17,6 +17,7 @@ function monkey(id: string, days: number, extra: Partial<Monkey> = {}): Monkey {
     effort: 'hour',
     createdAt: daysAgo(days),
     fedAt: null,
+    dueOn: null,
     ...extra,
   }
 }
@@ -91,5 +92,16 @@ describe('placeMonkeys', () => {
       expect(p.top).toBeGreaterThanOrEqual(0)
       expect(p.left + p.width).toBeLessThanOrEqual(100)
     }
+  })
+
+  it('gives jobs due within a week the top seats, soonest first', () => {
+    const list = [
+      monkey('old', 200),
+      monkey('dueSoon', 1, { dueOn: '2026-10-20' }),
+      monkey('dueSooner', 1, { dueOn: '2026-10-18' }),
+      monkey('dueLater', 1, { dueOn: '2026-12-25' }),
+    ]
+    const { placed } = placeMonkeys(list, now)
+    expect(placed.map((p) => p.monkey.id)).toEqual(['dueSooner', 'dueSoon', 'old', 'dueLater'])
   })
 })

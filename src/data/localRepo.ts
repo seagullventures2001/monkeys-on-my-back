@@ -14,7 +14,7 @@ function daysAgo(n: number): string {
 
 /** A few example monkeys so the tree is not empty the first time you open it. */
 function demoMonkeys(): Monkey[] {
-  const base = { troopId: LOCAL_TROOP, notes: null, fedAt: null }
+  const base = { troopId: LOCAL_TROOP, notes: null, fedAt: null, dueOn: null }
   return [
     { ...base, id: `${DEMO_PREFIX}course`, title: 'Finish the online course', effort: 'ongoing', createdAt: daysAgo(240) },
     { ...base, id: `${DEMO_PREFIX}gurney`, title: 'Gurney the house', effort: 'full', createdAt: daysAgo(150) },
@@ -43,7 +43,8 @@ function read(): Monkey[] {
       return seeded
     }
     const raw = localStorage.getItem(KEY)
-    return raw ? (JSON.parse(raw) as Monkey[]) : []
+    // Monkeys saved before due dates existed have no dueOn field.
+    return raw ? (JSON.parse(raw) as Monkey[]).map((m) => ({ ...m, dueOn: m.dueOn ?? null })) : []
   } catch {
     return memory
   }
@@ -83,6 +84,7 @@ export const localRepo: MonkeyRepo & { clearDemo(): void; hasDemo(): boolean } =
       effort: input.effort,
       createdAt: input.createdAt ?? new Date().toISOString(),
       fedAt: null,
+      dueOn: input.dueOn ?? null,
     }
     write([...read(), monkey])
     return monkey
