@@ -1,6 +1,6 @@
 # Monkeys on My Back
 
-A playful tracker for the medium-to-big jobs that keep getting pushed aside: clean the BBQ, trim the tree, gurney the house, finish the course. Each job is a monkey on a tree. The longer it hangs around, the bigger and grumpier it gets. Feed it a banana when it's done and it jumps off your back.
+A playful tracker for the medium-to-big jobs that keep getting pushed aside: clean the BBQ, trim the tree, gurney the house, finish the course. Each job is a monkey on a tree. The longer it hangs around, the bigger and sadder it gets. Feed it a banana when it's done and it jumps off your back.
 
 ## Run it (no setup needed)
 
@@ -13,7 +13,7 @@ Open the URL Vite prints (usually http://localhost:5173). It starts in **on-devi
 
 ## What's in this first version
 
-- **Tree screen**: monkeys sit on branches, oldest at the top. Size and grumpiness grow with age.
+- **Tree screen**: monkeys sit on branches, oldest at the top. They grow bigger with age and their mood slides: very happy (under 2 weeks), happy (under 6), stressed (under 12), then crying.
 - **Feed a banana**: the monkey grabs a banana and leaps off; the rest shuffle up. Undo for a few seconds afterwards.
 - **Add a monkey**: job, size (15 min → full day, or ongoing), and how long it's *already* been nagging you, so old jobs start at the right size.
 - **Weekend nudge**: picks the oldest job that fits your next free pocket (quick jobs on weeknights, bigger ones on weekend mornings, looks ahead to Saturday from Friday afternoon).

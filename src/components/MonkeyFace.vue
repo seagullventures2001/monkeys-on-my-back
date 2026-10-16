@@ -1,13 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { Mood } from '@/lib/monkey'
 
-const props = withDefaults(defineProps<{ mood?: Mood; label?: string }>(), { mood: 0, label: '' })
-
-// Content smile, flat restless mouth, or a grumpy frown.
-const mouth = computed(
-  () => ['M40 69 Q50 78 60 69', 'M41 71 L59 71', 'M40 74 Q50 66 60 74'][props.mood],
-)
+// 0 very happy · 1 happy · 2 stressed · 3 crying
+withDefaults(defineProps<{ mood?: Mood; label?: string }>(), { mood: 0, label: '' })
 </script>
 
 <template>
@@ -19,25 +14,86 @@ const mouth = computed(
     :aria-label="label || undefined"
     :aria-hidden="label ? undefined : 'true'"
   >
-    <circle cx="16" cy="48" r="14" fill="var(--fur)" />
-    <circle cx="84" cy="48" r="14" fill="var(--fur)" />
-    <circle cx="16" cy="48" r="7" fill="var(--face)" />
-    <circle cx="84" cy="48" r="7" fill="var(--face)" />
-    <circle cx="50" cy="52" r="36" fill="var(--fur)" />
-    <circle cx="39" cy="47" r="13" fill="var(--face)" />
-    <circle cx="61" cy="47" r="13" fill="var(--face)" />
-    <ellipse cx="50" cy="66" rx="23" ry="17" fill="var(--face)" />
-    <circle cx="40" cy="48" r="4.5" fill="#2a1a10" />
-    <circle cx="60" cy="48" r="4.5" fill="#2a1a10" />
+    <!-- ears -->
+    <circle cx="15" cy="50" r="14" fill="var(--fur)" />
+    <circle cx="85" cy="50" r="14" fill="var(--fur)" />
+    <circle cx="15" cy="50" r="7.5" fill="var(--face)" />
+    <circle cx="85" cy="50" r="7.5" fill="var(--face)" />
+    <!-- head and heart-shaped face -->
+    <circle cx="50" cy="52" r="37" fill="var(--fur)" />
     <path
-      v-if="mood === 2"
-      d="M31 36 L45 41 M69 36 L55 41"
+      d="M50 38 C44 28 26 30 26 46 C26 54 29 59 31 62 C30 76 40 84 50 84 C60 84 70 76 69 62 C71 59 74 54 74 46 C74 30 56 28 50 38 Z"
+      fill="var(--face)"
+    />
+
+    <!-- rosy cheeks when happy -->
+    <g v-if="mood <= 1" fill="#f2a08a" opacity="0.55">
+      <ellipse cx="33" cy="62" rx="5" ry="3.2" />
+      <ellipse cx="67" cy="62" rx="5" ry="3.2" />
+    </g>
+
+    <!-- EYES -->
+    <!-- very happy: squeezed shut with joy -->
+    <path
+      v-if="mood === 0"
+      d="M35 51 Q40 44 45 51 M55 51 Q60 44 65 51"
+      fill="none"
       stroke="#2a1a10"
-      stroke-width="4"
+      stroke-width="3.4"
       stroke-linecap="round"
     />
-    <path v-else-if="mood === 1" d="M33 38 L45 39 M67 38 L55 39" stroke="#2a1a10" stroke-width="3" stroke-linecap="round" />
-    <ellipse cx="50" cy="60" rx="4" ry="2.5" fill="#6b4a2b" />
-    <path :d="mouth" fill="none" stroke="#2a1a10" stroke-width="3.5" stroke-linecap="round" />
+    <!-- open eyes, bigger when crying -->
+    <template v-else>
+      <ellipse cx="40" cy="50" :rx="mood === 3 ? 5.6 : 4.6" :ry="mood === 3 ? 6.6 : 5.4" fill="#2a1a10" />
+      <ellipse cx="60" cy="50" :rx="mood === 3 ? 5.6 : 4.6" :ry="mood === 3 ? 6.6 : 5.4" fill="#2a1a10" />
+      <circle cx="41.8" cy="47.6" r="1.9" fill="#ffffff" />
+      <circle cx="61.8" cy="47.6" r="1.9" fill="#ffffff" />
+    </template>
+
+    <!-- worried brows: inner ends lifted, never angry -->
+    <path
+      v-if="mood >= 2"
+      d="M32 41 Q38 40 45 36 M68 41 Q62 40 55 36"
+      fill="none"
+      stroke="#2a1a10"
+      stroke-width="3"
+      stroke-linecap="round"
+    />
+
+    <ellipse cx="50" cy="61" rx="3.5" ry="2.2" fill="#6b4a2b" />
+
+    <!-- MOUTHS -->
+    <!-- very happy: big open grin -->
+    <g v-if="mood === 0">
+      <path d="M39 66 Q50 82 61 66 Z" fill="#5a2a1c" stroke="#2a1a10" stroke-width="2.4" stroke-linejoin="round" />
+      <path d="M44 73 Q50 78 56 73 Q50 71 44 73 Z" fill="#e46f6f" />
+    </g>
+    <!-- happy: warm smile -->
+    <path v-else-if="mood === 1" d="M41 68 Q50 77 59 68" fill="none" stroke="#2a1a10" stroke-width="3" stroke-linecap="round" />
+    <!-- stressed: nervous gritted-teeth grimace -->
+    <g v-else-if="mood === 2">
+      <rect x="41" y="68" width="18" height="7" rx="3" fill="#ffffff" stroke="#2a1a10" stroke-width="2.4" />
+      <path d="M41.5 71.5 H58.5 M47 68.5 V74.5 M53 68.5 V74.5" stroke="#2a1a10" stroke-width="1.3" />
+    </g>
+    <!-- crying: open wobbly wail -->
+    <path
+      v-else
+      d="M41 76 Q50 64 59 76 Q50 73 41 76 Z"
+      fill="#5a2a1c"
+      stroke="#2a1a10"
+      stroke-width="2.4"
+      stroke-linejoin="round"
+    />
+
+    <!-- stressed: sweat drop -->
+    <path v-if="mood === 2" d="M74 30 Q69 38 72 41 Q76 43 77 38 Q77 34 74 30 Z" fill="#8fcbef" stroke="#4a9bd0" stroke-width="1" />
+
+    <!-- crying: watery eyes and streaming tears -->
+    <g v-if="mood === 3" fill="#6cb8e6">
+      <path d="M34 55 Q40 59 46 55 Q40 57 34 55 Z" />
+      <path d="M54 55 Q60 59 66 55 Q60 57 54 55 Z" />
+      <path d="M36 57 Q32 66 34 74 Q38 74 38 66 Q38 61 36 57 Z" />
+      <path d="M64 57 Q68 66 66 74 Q62 74 62 66 Q62 61 64 57 Z" />
+    </g>
   </svg>
 </template>

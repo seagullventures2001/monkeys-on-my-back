@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import BananaIcon from './BananaIcon.vue'
 import { EFFORTS, effortShort, formatAge, type Effort, type Monkey } from '@/lib/monkey'
 
@@ -10,6 +10,11 @@ const emit = defineEmits<{
   remove: [id: string]
   close: []
 }>()
+
+const ageLine = computed(() => {
+  const age = formatAge(props.monkey.createdAt)
+  return age === 'today' ? 'Added today' : `On your back for ${age}`
+})
 
 const editing = ref(false)
 const title = ref('')
@@ -46,7 +51,7 @@ function confirmRemove() {
     <template v-if="!editing">
       <div class="head">
         <h2>{{ monkey.title }}</h2>
-        <p class="meta">On your back for {{ formatAge(monkey.createdAt) }} · {{ effortShort(monkey.effort) }}</p>
+        <p class="meta">{{ ageLine }} · {{ effortShort(monkey.effort) }}</p>
         <p v-if="monkey.notes" class="notes">{{ monkey.notes }}</p>
       </div>
       <div class="actions">
