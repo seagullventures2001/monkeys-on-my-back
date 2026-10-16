@@ -1,11 +1,24 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Mood } from '@/lib/monkey'
 import MonkeyFace from './MonkeyFace.vue'
 
 // A whole monkey sitting on a branch: big head, small body.
 // viewBox is 100 x 130; the head fills the top 100 units, the body hangs below it.
 // The monkey "sits" at y = 116 (see SIT_Y in lib/layout.ts).
-withDefaults(defineProps<{ mood?: Mood }>(), { mood: 0 })
+//
+// pose: 'auto' follows the mood (arms up when very happy), 'catch' raises both arms,
+// 'eat' brings the hands to the chin. Anything in the "held" slot is drawn on top,
+// in the same 100 x 130 coordinates (used for the banana in the celebration).
+const props = withDefaults(
+  defineProps<{ mood?: Mood; pose?: 'auto' | 'catch' | 'eat'; chewing?: boolean }>(),
+  { mood: 0, pose: 'auto', chewing: false },
+)
+const arms = computed(() => {
+  if (props.pose === 'eat') return 'eat'
+  if (props.pose === 'catch' || props.mood === 0) return 'up'
+  return 'rest'
+})
 </script>
 
 <template>
@@ -29,14 +42,14 @@ withDefaults(defineProps<{ mood?: Mood }>(), { mood: 0 })
     <ellipse cx="50" cy="103" rx="17" ry="15" fill="var(--fur)" />
     <ellipse cx="50" cy="106" rx="10" ry="9" fill="var(--face)" />
 
-    <!-- arms: waving with joy when very happy, otherwise resting -->
-    <template v-if="mood === 0">
+    <!-- arms: up (waving or catching), at the chin (eating), or resting -->
+    <template v-if="arms === 'up'">
       <path d="M36 98 Q26 94 24 84" fill="none" stroke="var(--fur)" stroke-width="7" stroke-linecap="round" />
       <path d="M64 98 Q74 94 76 84" fill="none" stroke="var(--fur)" stroke-width="7" stroke-linecap="round" />
       <circle cx="24" cy="82" r="4.5" fill="var(--face)" />
       <circle cx="76" cy="82" r="4.5" fill="var(--face)" />
     </template>
-    <template v-else>
+    <template v-else-if="arms === 'rest'">
       <path d="M36 96 Q32 105 37 113" fill="none" stroke="var(--fur)" stroke-width="7" stroke-linecap="round" />
       <path d="M64 96 Q68 105 63 113" fill="none" stroke="var(--fur)" stroke-width="7" stroke-linecap="round" />
       <circle cx="38" cy="114" r="4.5" fill="var(--face)" />
@@ -45,7 +58,18 @@ withDefaults(defineProps<{ mood?: Mood }>(), { mood: 0 })
 
     <!-- the head sits on top of everything -->
     <svg x="0" y="0" width="100" height="100" viewBox="0 0 100 100" overflow="visible">
-      <MonkeyFace :mood="mood" />
+      <MonkeyFace :mood="mood" :chewing="chewing" />
     </svg>
+
+    <!-- eating: hands come up in front of the chin, drawn over the head -->
+    <template v-if="arms === 'eat'">
+      <path d="M36 97 Q30 90 41 86" fill="none" stroke="var(--fur)" stroke-width="7" stroke-linecap="round" />
+      <path d="M64 97 Q70 90 59 86" fill="none" stroke="var(--fur)" stroke-width="7" stroke-linecap="round" />
+    </template>
+    <slot name="held" />
+    <template v-if="arms === 'eat'">
+      <circle cx="43" cy="86" r="4.5" fill="var(--face)" />
+      <circle cx="57" cy="86" r="4.5" fill="var(--face)" />
+    </template>
   </svg>
 </template>

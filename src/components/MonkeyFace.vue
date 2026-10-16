@@ -2,7 +2,8 @@
 import type { Mood } from '@/lib/monkey'
 
 // 0 very happy · 1 happy · 2 stressed · 3 crying
-withDefaults(defineProps<{ mood?: Mood; label?: string }>(), { mood: 0, label: '' })
+// chewing: happy squeezed eyes, puffed cheeks and a munching mouth (used while eating the banana).
+withDefaults(defineProps<{ mood?: Mood; label?: string; chewing?: boolean }>(), { mood: 0, label: '', chewing: false })
 </script>
 
 <template>
@@ -27,7 +28,11 @@ withDefaults(defineProps<{ mood?: Mood; label?: string }>(), { mood: 0, label: '
     />
 
     <!-- rosy cheeks when happy -->
-    <g v-if="mood <= 1" fill="#f2a08a" opacity="0.55">
+    <g v-if="chewing" fill="#f2a08a" opacity="0.6">
+      <ellipse class="cheek" cx="32" cy="63" rx="7" ry="5" />
+      <ellipse class="cheek" cx="68" cy="63" rx="7" ry="5" />
+    </g>
+    <g v-else-if="mood <= 1" fill="#f2a08a" opacity="0.55">
       <ellipse cx="33" cy="62" rx="5" ry="3.2" />
       <ellipse cx="67" cy="62" rx="5" ry="3.2" />
     </g>
@@ -35,7 +40,7 @@ withDefaults(defineProps<{ mood?: Mood; label?: string }>(), { mood: 0, label: '
     <!-- EYES -->
     <!-- very happy: squeezed shut with joy -->
     <path
-      v-if="mood === 0"
+      v-if="mood === 0 || chewing"
       d="M35 51 Q40 44 45 51 M55 51 Q60 44 65 51"
       fill="none"
       stroke="#2a1a10"
@@ -52,7 +57,7 @@ withDefaults(defineProps<{ mood?: Mood; label?: string }>(), { mood: 0, label: '
 
     <!-- worried brows: inner ends lifted, never angry -->
     <path
-      v-if="mood >= 2"
+      v-if="mood >= 2 && !chewing"
       d="M32 41 Q38 40 45 36 M68 41 Q62 40 55 36"
       fill="none"
       stroke="#2a1a10"
@@ -63,8 +68,13 @@ withDefaults(defineProps<{ mood?: Mood; label?: string }>(), { mood: 0, label: '
     <ellipse cx="50" cy="61" rx="3.5" ry="2.2" fill="#6b4a2b" />
 
     <!-- MOUTHS -->
+    <!-- chewing: alternates between a closed happy munch and a small open bite -->
+    <g v-if="chewing">
+      <path class="munch-closed" d="M42 70 Q50 76 58 70" fill="none" stroke="#2a1a10" stroke-width="3" stroke-linecap="round" />
+      <ellipse class="munch-open" cx="50" cy="71" rx="5" ry="3.6" fill="#5a2a1c" stroke="#2a1a10" stroke-width="2" />
+    </g>
     <!-- very happy: big open grin -->
-    <g v-if="mood === 0">
+    <g v-else-if="mood === 0">
       <path d="M39 66 Q50 82 61 66 Z" fill="#5a2a1c" stroke="#2a1a10" stroke-width="2.4" stroke-linejoin="round" />
       <path d="M44 73 Q50 78 56 73 Q50 71 44 73 Z" fill="#e46f6f" />
     </g>
@@ -86,10 +96,10 @@ withDefaults(defineProps<{ mood?: Mood; label?: string }>(), { mood: 0, label: '
     />
 
     <!-- stressed: sweat drop -->
-    <path v-if="mood === 2" d="M74 30 Q69 38 72 41 Q76 43 77 38 Q77 34 74 30 Z" fill="#8fcbef" stroke="#4a9bd0" stroke-width="1" />
+    <path v-if="mood === 2 && !chewing" d="M74 30 Q69 38 72 41 Q76 43 77 38 Q77 34 74 30 Z" fill="#8fcbef" stroke="#4a9bd0" stroke-width="1" />
 
     <!-- crying: watery eyes and streaming tears -->
-    <g v-if="mood === 3" fill="#6cb8e6">
+    <g v-if="mood === 3 && !chewing" fill="#6cb8e6">
       <path d="M34 55 Q40 59 46 55 Q40 57 34 55 Z" />
       <path d="M54 55 Q60 59 66 55 Q60 57 54 55 Z" />
       <path d="M36 57 Q32 66 34 74 Q38 74 38 66 Q38 61 36 57 Z" />
@@ -97,3 +107,33 @@ withDefaults(defineProps<{ mood?: Mood; label?: string }>(), { mood: 0, label: '
     </g>
   </svg>
 </template>
+
+<style scoped>
+.munch-closed {
+  animation: munch 0.36s steps(1, end) infinite;
+}
+.munch-open {
+  animation: munch 0.36s steps(1, end) infinite reverse;
+}
+.cheek {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: puff 0.36s ease-in-out infinite alternate;
+}
+@keyframes munch {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes puff {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.18);
+  }
+}
+</style>

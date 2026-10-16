@@ -10,6 +10,8 @@ import NudgeCard from '@/components/NudgeCard.vue'
 import MonkeySheet from '@/components/MonkeySheet.vue'
 import AddMonkeyDialog from '@/components/AddMonkeyDialog.vue'
 import BananaIcon from '@/components/BananaIcon.vue'
+import FeedCelebration from '@/components/FeedCelebration.vue'
+import type { Monkey } from '@/lib/monkey'
 
 const store = useTroopStore()
 const selectedId = ref<string | null>(null)
@@ -19,7 +21,14 @@ let toastTimer: ReturnType<typeof setTimeout> | undefined
 
 const showWaiting = ref(false)
 
-const troop = computed(() => splitTroop(store.onBack))
+// The monkey being celebrated, and the one still waving goodbye on the tree afterwards.
+const celebrating = ref<Monkey | null>(null)
+const leaving = ref<Monkey | null>(null)
+// It stays in its usual mood until it has had the banana, then smiles as it leaves.
+const happyId = ref<string | null>(null)
+
+// A fed monkey stays on its branch (smiling) until you tap Continue, then fades away.
+const troop = computed(() => splitTroop(leaving.value ? [...store.onBack, leaving.value] : store.onBack))
 const anyFed = computed(() => store.fed.length > 0)
 const isEmpty = computed(() => store.onBack.length === 0 && !store.loading)
 const subline = computed(() => {
@@ -43,10 +52,28 @@ async function pickWaiting(id: string) {
 }
 
 async function feed(id: string) {
-  const title = selected.value?.title ?? ''
+  const monkey = store.onBack.find((m) => m.id === id)
+  if (!monkey) return
   selectedId.value = null
+  leaving.value = monkey
+  celebrating.value = monkey
   await store.feed(id)
-  if (!store.error) showToast(id, title)
+  if (store.error) {
+    celebrating.value = null
+    leaving.value = null
+  }
+}
+
+function finishCelebration() {
+  const monkey = celebrating.value
+  celebrating.value = null
+  happyId.value = monkey?.id ?? null
+  // Let the celebration fade out first, then the monkey leaves the tree.
+  setTimeout(() => {
+    leaving.value = null
+    happyId.value = null
+    if (monkey) showToast(monkey.id, monkey.title)
+  }, 450)
 }
 
 function showToast(id: string, title: string) {
@@ -111,7 +138,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
     <NudgeCard v-if="store.nudge" :nudge="store.nudge" class="nudge" @open="select" />
 
     <div class="tree-wrap">
-      <TroopTree :monkeys="troop.onTree" :selected-id="selectedId" @select="select" />
+      <TroopTree :monkeys="troop.onTree" :selected-id="selectedId" :happy-id="happyId" @select="select" />
     </div>
 
     <button v-if="troop.waiting.length" type="button" class="waiting" @click="showWaiting = true">
@@ -166,6 +193,9 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
     </div>
 
     <AddMonkeyDialog :open="adding" @close="adding = false" @add="add" />
+    <Transition name="celebrate">
+      <FeedCelebration v-if="celebrating" :monkey="celebrating" :fed-count="store.fed.length" @continue="finishCelebration" />
+    </Transition>
     <WaitingDialog :open="showWaiting" :monkeys="troop.waiting" @close="showWaiting = false" @pick="pickWaiting" />
   </main>
 </template>
@@ -352,6 +382,14 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
 .undo {
   flex: none;
   min-height: 40px;
+}
+
+.celebrate-leave-active {
+  transition: opacity 0.4s ease;
+}
+
+.celebrate-leave-to {
+  opacity: 0;
 }
 
 .toast-enter-active,
