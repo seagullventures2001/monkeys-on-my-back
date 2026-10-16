@@ -1,4 +1,4 @@
-import { byAge, growth, type Monkey } from './monkey'
+import { byPriority, growth, type Monkey } from './monkey'
 
 /** The tree is drawn in a 358 x 380 box; everything is converted to % so it scales. */
 export const TREE_W = 358
@@ -25,10 +25,10 @@ export const MAX_SEATS = SEATS.length
 
 /**
  * Splits monkeys into the ones on the tree and the ones waiting off it.
- * Oldest (the jobs dragging on longest) get the tree; newer ones wait.
+ * Anything due soon gets a seat first, then the oldest jobs; newer ones wait.
  */
-export function splitTroop<T extends { createdAt: string }>(monkeys: T[]): { onTree: T[]; waiting: T[] } {
-  const sorted = [...monkeys].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+export function splitTroop(monkeys: Monkey[], now: Date = new Date()): { onTree: Monkey[]; waiting: Monkey[] } {
+  const sorted = [...monkeys].sort(byPriority(now))
   return { onTree: sorted.slice(0, MAX_SEATS), waiting: sorted.slice(MAX_SEATS) }
 }
 
@@ -47,14 +47,14 @@ export function monkeySize(m: Monkey, now: Date): number {
 }
 
 /**
- * Oldest monkeys get the top seats so the job that has been dragging longest is
+ * Jobs due soon get the top seats, then the oldest, so whatever matters most is
  * the first thing you see. Anything past the last seat is reported as overflow.
  */
 export function placeMonkeys(
   monkeys: Monkey[],
   now: Date = new Date(),
 ): { placed: PlacedMonkey[]; overflow: number } {
-  const sorted = [...monkeys].sort(byAge)
+  const sorted = [...monkeys].sort(byPriority(now))
   const placed = sorted.slice(0, SEATS.length).map((monkey, i) => {
     const seat = SEATS[i]
     const size = monkeySize(monkey, now)

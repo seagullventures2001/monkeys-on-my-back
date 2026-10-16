@@ -1,6 +1,6 @@
 import type { Monkey, NewMonkey } from '@/lib/monkey'
 
-export type EditableFields = Partial<Pick<Monkey, 'title' | 'notes' | 'effort'>>
+export type EditableFields = Partial<Pick<Monkey, 'title' | 'notes' | 'effort' | 'dueOn'>>
 
 /**
  * Everything the app needs from storage. There are two implementations:

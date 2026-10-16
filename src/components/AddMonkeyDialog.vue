@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { EFFORTS, type Effort, type NewMonkey } from '@/lib/monkey'
+import DueDateField from './DueDateField.vue'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: []; add: [input: NewMonkey] }>()
@@ -12,6 +13,7 @@ const title = ref('')
 const effort = ref<Effort>('hour')
 const since = ref(0)
 const notes = ref('')
+const dueOn = ref<string | null>(null)
 
 // Lets people be honest about a job that has been hanging around for a while,
 // so the monkey starts at the right size.
@@ -31,6 +33,7 @@ watch(
       effort.value = 'hour'
       since.value = 0
       notes.value = ''
+      dueOn.value = null
       dialog.value.showModal()
       await nextTick()
       titleInput.value?.focus()
@@ -46,6 +49,7 @@ function submit() {
     title: title.value.trim(),
     effort: effort.value,
     notes: notes.value.trim() || null,
+    dueOn: dueOn.value,
     createdAt: since.value ? new Date(Date.now() - since.value * 86400000).toISOString() : undefined,
   })
 }
@@ -88,6 +92,8 @@ function submit() {
           </label>
         </div>
       </fieldset>
+
+      <DueDateField id="add-due" v-model="dueOn" />
 
       <div class="field">
         <label for="monkey-notes">Notes <span class="muted">(optional)</span></label>

@@ -68,7 +68,7 @@ async function add(input: NewMonkey) {
   if (m) selectedId.value = m.id
 }
 
-async function save(id: string, patch: { title: string; effort: Effort; notes: string | null }) {
+async function save(id: string, patch: { title: string; effort: Effort; notes: string | null; dueOn: string | null }) {
   await store.update(id, patch)
 }
 

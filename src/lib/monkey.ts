@@ -1,6 +1,8 @@
 // Core monkey types and pure helpers. Nothing in here touches storage or the DOM,
 // so it is easy to unit test (see monkey.test.ts).
 
+import { daysUntil, isDueSoon } from './due'
+
 export type Effort = 'quick' | 'hour' | 'half' | 'full' | 'ongoing'
 
 export interface Monkey {
@@ -11,6 +13,7 @@ export interface Monkey {
   effort: Effort
   createdAt: string // ISO timestamp
   fedAt: string | null // ISO timestamp when the job was done, null while still on your back
+  dueOn: string | null // optional calendar day ("2026-10-24"); most monkeys have none
 }
 
 export interface NewMonkey {
@@ -19,6 +22,7 @@ export interface NewMonkey {
   effort: Effort
   /** Lets people back-date a job they have been putting off for a while. */
   createdAt?: string
+  dueOn?: string | null
 }
 
 export const EFFORTS: { value: Effort; label: string; short: string }[] = [
@@ -86,6 +90,21 @@ export function isOnBack(m: Monkey): boolean {
 /** Oldest first. */
 export function byAge(a: Monkey, b: Monkey): number {
   return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+}
+
+/**
+ * Tree order: anything due within a week (or overdue) comes first, soonest first;
+ * everything else follows, oldest first.
+ */
+export function byPriority(now: Date = new Date()): (a: Monkey, b: Monkey) => number {
+  return (a, b) => {
+    const aSoon = isDueSoon(a.dueOn, now)
+    const bSoon = isDueSoon(b.dueOn, now)
+    if (aSoon && bSoon) return daysUntil(a.dueOn!, now) - daysUntil(b.dueOn!, now) || byAge(a, b)
+    if (aSoon) return -1
+    if (bSoon) return 1
+    return byAge(a, b)
+  }
 }
 
 /**

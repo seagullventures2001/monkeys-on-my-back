@@ -6,7 +6,7 @@ function at(iso: string): Date {
   return new Date(iso)
 }
 
-function monkey(id: string, daysAgo: number, effort: Effort, now: Date, fed = false): Monkey {
+function monkey(id: string, daysAgo: number, effort: Effort, now: Date, fed = false, dueOn: string | null = null): Monkey {
   return {
     id,
     troopId: 't',
@@ -15,6 +15,7 @@ function monkey(id: string, daysAgo: number, effort: Effort, now: Date, fed = fa
     effort,
     createdAt: new Date(now.getTime() - daysAgo * 86400000).toISOString(),
     fedAt: fed ? now.toISOString() : null,
+    dueOn,
   }
 }
 
@@ -71,5 +72,26 @@ describe('pickNudge', () => {
 
   it('handles a fixed ISO date too', () => {
     expect(pickNudge([], at('2026-10-17T00:00:00Z'))).toBeNull()
+  })
+
+  it('puts a job due within 3 days ahead of everything else', () => {
+    const list = [
+      monkey('bbq', 42, 'hour', satMorning),
+      monkey('mow', 2, 'hour', satMorning, false, '2026-10-19'), // Monday
+    ]
+    const n = pickNudge(list, satMorning)
+    expect(n?.monkey.id).toBe('mow')
+    expect(n?.headline).toBe('Due Monday.')
+  })
+
+  it('ignores due dates further out', () => {
+    const list = [monkey('bbq', 42, 'hour', satMorning), monkey('paint', 2, 'hour', satMorning, false, '2026-11-20')]
+    expect(pickNudge(list, satMorning)?.monkey.id).toBe('bbq')
+  })
+
+  it('calls out overdue jobs', () => {
+    const n = pickNudge([monkey('rego', 30, 'quick', satMorning, false, '2026-10-15')], satMorning)
+    expect(n?.headline).toBe('Overdue.')
+    expect(n?.body).toContain('2 days ago')
   })
 })

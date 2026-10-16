@@ -1,4 +1,5 @@
 import { byAge, formatAge, isOnBack, type Effort, type Monkey } from './monkey'
+import { DUE_NUDGE_DAYS, daysUntil, parseDay } from './due'
 
 export interface Nudge {
   monkey: Monkey
@@ -37,6 +38,12 @@ export function fitsFor(now: Date): { when: string; efforts: Effort[] } {
 export function pickNudge(monkeys: Monkey[], now: Date = new Date()): Nudge | null {
   const waiting = monkeys.filter(isOnBack).sort(byAge)
   if (waiting.length === 0) return null
+
+  // A job with a date coming up (or already missed) beats everything else.
+  const urgent = waiting
+    .filter((m) => m.dueOn && daysUntil(m.dueOn, now) <= DUE_NUDGE_DAYS)
+    .sort((a, b) => daysUntil(a.dueOn!, now) - daysUntil(b.dueOn!, now))[0]
+  if (urgent) return dueNudge(urgent, now)
 
   const { when, efforts } = fitsFor(now)
   const fitting = waiting.find((m) => efforts.includes(m.effort))
@@ -80,4 +87,16 @@ function effortPhrase(effort: Effort): string {
     case 'ongoing':
       return 'an ongoing one'
   }
+}
+
+function dueNudge(m: Monkey, now: Date): Nudge {
+  const n = daysUntil(m.dueOn!, now)
+  if (n < 0) {
+    const late = n === -1 ? 'yesterday' : `${-n} days ago`
+    return { monkey: m, headline: 'Overdue.', body: `“${m.title}” was due ${late}. It is not too late to feed it a banana.` }
+  }
+  if (n === 0) return { monkey: m, headline: 'Due today.', body: `“${m.title}” needs doing today.` }
+  if (n === 1) return { monkey: m, headline: 'Due tomorrow.', body: `“${m.title}” needs doing by tomorrow.` }
+  const day = parseDay(m.dueOn!).toLocaleDateString('en-AU', { weekday: 'long' })
+  return { monkey: m, headline: `Due ${day}.`, body: `“${m.title}” needs doing by ${day}. Worth grabbing a free hour before then?` }
 }

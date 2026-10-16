@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import type { Session } from '@supabase/supabase-js'
-import { byAge, isOnBack, type Monkey, type NewMonkey } from '@/lib/monkey'
+import { byPriority, isOnBack, type Monkey, type NewMonkey } from '@/lib/monkey'
 import { pickNudge } from '@/lib/nudge'
 import { supabase } from '@/lib/supabase'
 import { localRepo } from '@/data/localRepo'
@@ -18,7 +18,7 @@ export const useTroopStore = defineStore('troop', () => {
   /** Set briefly after feeding so the UI can celebrate and offer undo. */
   const lastFed = ref<Monkey | null>(null)
 
-  const onBack = computed(() => monkeys.value.filter(isOnBack).sort(byAge))
+  const onBack = computed(() => monkeys.value.filter(isOnBack).sort(byPriority()))
   const fed = computed(() =>
     monkeys.value
       .filter((m) => !isOnBack(m))
@@ -134,7 +134,7 @@ export const useTroopStore = defineStore('troop', () => {
     let copied = 0
     for (const m of local) {
       const created = await run(() =>
-        repo.value.add({ title: m.title, notes: m.notes, effort: m.effort, createdAt: m.createdAt }),
+        repo.value.add({ title: m.title, notes: m.notes, effort: m.effort, createdAt: m.createdAt, dueOn: m.dueOn }),
       )
       if (created && m.fedAt) await run(() => repo.value.feed(created.id))
       if (created) copied++

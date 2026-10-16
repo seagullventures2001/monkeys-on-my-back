@@ -3,7 +3,8 @@
 import { PGlite } from '@electric-sql/pglite'
 import { readFileSync } from 'node:fs'
 
-const migration = readFileSync(process.argv[2], 'utf8')
+// Every migration file passed on the command line, applied in order.
+const migrations = process.argv.slice(2).sort().map((f) => readFileSync(f, 'utf8'))
 const db = new PGlite()
 
 await db.exec(`
@@ -17,7 +18,7 @@ await db.exec(`
   grant execute on function auth.uid() to anon, authenticated;
 `)
 
-await db.exec(migration)
+for (const m of migrations) await db.exec(m)
 
 await db.exec(`
   grant usage on schema public to anon, authenticated;
@@ -60,6 +61,10 @@ const added = await as(A, `insert into public.monkeys (troop_id, title, effort) 
 check('A can add a monkey to own troop', added.rows.length === 1 && added.rows[0].created_by === A)
 const monkeyA = added.rows[0].id
 
+const dated = await as(A, `insert into public.monkeys (troop_id, title, due_on) values ('${troopA}', 'Mow before the party', '2026-10-24') returning due_on`)
+check('A can add a monkey with a due date', dated.rows.length === 1 && dated.rows[0].due_on !== null)
+check('B cannot see A\'s dated monkey', (await as(B, `select * from public.monkeys where due_on is not null`)).rows.length === 0)
+
 check('A cannot add a monkey to B\'s troop', await fails(A, `insert into public.monkeys (troop_id, title) values ('${troopB}', 'sneaky')`))
 check('A cannot fake created_by', await fails(A, `insert into public.monkeys (troop_id, title, created_by) values ('${troopA}', 'x', '${B}')`))
 
@@ -81,7 +86,7 @@ check('monkeys cannot move troops', await fails(A, `update public.monkeys set tr
 
 // Sharing: A invites B into A's troop.
 await as(A, `insert into public.troop_members (troop_id, user_id) values ('${troopA}', '${B}')`)
-check('after sharing, B sees A\'s monkey', (await as(B, `select * from public.monkeys where troop_id = '${troopA}'`)).rows.length === 1)
+check('after sharing, B sees A\'s monkeys', (await as(B, `select * from public.monkeys where troop_id = '${troopA}'`)).rows.length === 2)
 check('B can add to the shared troop', (await as(B, `insert into public.monkeys (troop_id, title) values ('${troopA}', 'Trim tree') returning id`)).rows.length === 1)
 const leave = await as(B, `delete from public.troop_members where troop_id = '${troopA}' and user_id = '${B}' returning user_id`)
 check('B can leave the shared troop', leave.rows.length === 1)

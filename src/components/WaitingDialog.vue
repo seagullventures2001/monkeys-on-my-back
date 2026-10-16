@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import MonkeyFace from './MonkeyFace.vue'
 import { effortShort, formatAge, moodFor, type Monkey } from '@/lib/monkey'
+import { dueLabel } from '@/lib/due'
 
 const props = defineProps<{ open: boolean; monkeys: Monkey[] }>()
 const emit = defineEmits<{ close: []; pick: [id: string] }>()
@@ -38,7 +39,10 @@ watch(
             <span class="face"><MonkeyFace :mood="moodFor(m.createdAt)" /></span>
             <span class="text">
               <span class="title">{{ m.title }}</span>
-              <span class="meta muted">{{ formatAge(m.createdAt) }} · {{ effortShort(m.effort) }}</span>
+              <span class="meta muted">
+                <template v-if="m.dueOn">{{ dueLabel(m.dueOn) }} · </template>{{ formatAge(m.createdAt) }} ·
+                {{ effortShort(m.effort) }}
+              </span>
             </span>
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" class="chev">
               <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />

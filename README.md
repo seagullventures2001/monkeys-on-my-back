@@ -50,8 +50,11 @@ All three pass in this version.
 
 ## Turning on accounts (Supabase)
 
+> **Database updates:** when a pull request adds a new file to `supabase/migrations/`, run that file in the Supabase SQL editor **before** merging, so the live app never asks for a column that doesn't exist yet.
+
+
 1. Create a project at supabase.com.
-2. In the SQL editor, run `supabase/migrations/20261015000000_init.sql` (or use the Supabase CLI: `supabase db push`).
+2. In the SQL editor, run each file in `supabase/migrations/` in date order (oldest first) (or use the Supabase CLI: `supabase db push`).
 3. **Authentication → URL configuration**: add `http://localhost:5173` to the redirect URLs.
 4. Copy `.env.example` to `.env.local` and fill in the project URL and anon key (Project settings → API).
 5. Restart `npm run dev`. Settings now shows "Email me a sign-in link".

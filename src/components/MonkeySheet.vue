@@ -2,11 +2,13 @@
 import { computed, ref, watch } from 'vue'
 import BananaIcon from './BananaIcon.vue'
 import { EFFORTS, effortShort, formatAge, type Effort, type Monkey } from '@/lib/monkey'
+import { daysUntil, dueLabel } from '@/lib/due'
+import DueDateField from './DueDateField.vue'
 
 const props = defineProps<{ monkey: Monkey }>()
 const emit = defineEmits<{
   feed: [id: string]
-  save: [id: string, patch: { title: string; effort: Effort; notes: string | null }]
+  save: [id: string, patch: { title: string; effort: Effort; notes: string | null; dueOn: string | null }]
   remove: [id: string]
   close: []
 }>()
@@ -20,11 +22,19 @@ const editing = ref(false)
 const title = ref('')
 const effort = ref<Effort>('hour')
 const notes = ref('')
+const dueOn = ref<string | null>(null)
+
+const due = computed(() =>
+  props.monkey.dueOn
+    ? { label: dueLabel(props.monkey.dueOn), late: daysUntil(props.monkey.dueOn) < 0 }
+    : null,
+)
 
 function startEdit() {
   title.value = props.monkey.title
   effort.value = props.monkey.effort
   notes.value = props.monkey.notes ?? ''
+  dueOn.value = props.monkey.dueOn
   editing.value = true
 }
 
@@ -35,7 +45,12 @@ watch(
 
 function save() {
   if (!title.value.trim()) return
-  emit('save', props.monkey.id, { title: title.value.trim(), effort: effort.value, notes: notes.value.trim() || null })
+  emit('save', props.monkey.id, {
+    title: title.value.trim(),
+    effort: effort.value,
+    notes: notes.value.trim() || null,
+    dueOn: dueOn.value,
+  })
   editing.value = false
 }
 
@@ -51,6 +66,7 @@ function confirmRemove() {
     <template v-if="!editing">
       <div class="head">
         <h2>{{ monkey.title }}</h2>
+        <p v-if="due" class="due-pill" :class="{ late: due.late }">{{ due.label }}</p>
         <p class="meta">{{ ageLine }} · {{ effortShort(monkey.effort) }}</p>
         <p v-if="monkey.notes" class="notes">{{ monkey.notes }}</p>
       </div>
@@ -74,6 +90,7 @@ function confirmRemove() {
           <option v-for="e in EFFORTS" :key="e.value" :value="e.value">{{ e.label }}</option>
         </select>
       </div>
+      <DueDateField id="edit-due" v-model="dueOn" />
       <div class="field">
         <label for="edit-notes">Notes</label>
         <textarea id="edit-notes" v-model="notes" class="input" rows="2" maxlength="2000" />
@@ -103,6 +120,21 @@ h2 {
   font-size: 14px;
   font-weight: 600;
   color: var(--ink-muted);
+}
+
+.due-pill {
+  display: inline-block;
+  margin: 8px 0 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--due);
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.due-pill.late {
+  background: var(--danger);
 }
 
 .notes {
