@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import MonkeyFigure from './MonkeyFigure.vue'
-import BananaIcon from './BananaIcon.vue'
 import { formatAge, moodFor, type Monkey } from '@/lib/monkey'
 import { placeMonkeys, TREE_H, TREE_W } from '@/lib/layout'
 import { daysUntil, dueLabel, dueTag, isDueSoon } from '@/lib/due'
 
-const props = defineProps<{ monkeys: Monkey[]; selectedId: string | null }>()
+// happyId: a monkey that has just been fed; it smiles until it leaves the tree.
+const props = defineProps<{ monkeys: Monkey[]; selectedId: string | null; happyId?: string | null }>()
 const emit = defineEmits<{ select: [id: string] }>()
 
 const now = new Date()
@@ -53,8 +53,7 @@ const layout = computed(() =>
         :aria-pressed="p.monkey.id === selectedId"
         @click="emit('select', p.monkey.id)"
       >
-        <MonkeyFigure :mood="moodFor(p.monkey.createdAt, now)" />
-        <span class="banana"><BananaIcon :size="28" /></span>
+        <MonkeyFigure :mood="p.monkey.id === happyId ? 0 : moodFor(p.monkey.createdAt, now)" />
         <span v-if="p.tag" class="due-tag" :class="{ late: p.late }" aria-hidden="true">{{ p.tag }}</span>
       </button>
     </TransitionGroup>
@@ -123,29 +122,31 @@ const layout = computed(() =>
   background: var(--danger);
 }
 
-.banana {
-  position: absolute;
-  left: 50%;
-  top: -10%;
-  transform: translateX(-50%);
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* A new monkey drops in from the canopy. */
 .monkey-enter-active {
   animation: drop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Fed monkey grabs the banana, hops, and leaps off the tree. */
+/* Fed monkey drifts up off the branch and fades away, happy. */
 .monkey-leave-active {
-  animation: jump-off 0.9s ease-in forwards;
+  animation: drift-off 1.4s ease-in forwards;
   pointer-events: none;
   z-index: 2;
 }
 
-.monkey-leave-active .banana {
-  animation: banana-in 0.9s ease-out forwards;
+@keyframes drift-off {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+  25% {
+    transform: translateY(-6%) scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-45%) scale(0.6);
+    opacity: 0;
+  }
 }
 
 @keyframes drop-in {
@@ -159,35 +160,5 @@ const layout = computed(() =>
   }
 }
 
-@keyframes jump-off {
-  0% {
-    transform: none;
-  }
-  30% {
-    transform: translateY(-8px) scale(1.08);
-  }
-  45% {
-    transform: translateY(4px) scale(0.96, 1.04);
-  }
-  100% {
-    transform: translate(160px, -140px) rotate(35deg) scale(0.6);
-    opacity: 0;
-  }
-}
-
-@keyframes banana-in {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -30px);
-  }
-  30% {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-  100% {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-}
 
 </style>
