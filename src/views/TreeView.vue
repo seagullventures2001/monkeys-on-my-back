@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useTroopStore } from '@/stores/troop'
-import { countLabel, type Effort, type NewMonkey } from '@/lib/monkey'
+import { countLabel, moodFor, type Effort, type NewMonkey } from '@/lib/monkey'
+import { splitTroop } from '@/lib/layout'
+import MonkeyFace from '@/components/MonkeyFace.vue'
+import WaitingDialog from '@/components/WaitingDialog.vue'
 import TroopTree from '@/components/TroopTree.vue'
 import NudgeCard from '@/components/NudgeCard.vue'
 import MonkeySheet from '@/components/MonkeySheet.vue'
@@ -14,10 +17,29 @@ const adding = ref(false)
 const toast = ref<{ id: string; title: string } | null>(null)
 let toastTimer: ReturnType<typeof setTimeout> | undefined
 
+const showWaiting = ref(false)
+
+const troop = computed(() => splitTroop(store.onBack))
+const anyFed = computed(() => store.fed.length > 0)
+const isEmpty = computed(() => store.onBack.length === 0 && !store.loading)
+const subline = computed(() => {
+  if (store.onBack.length > 0) return 'Bigger, sadder monkeys have been waiting longer for their banana.'
+  return anyFed.value ? 'Every monkey has been fed.' : 'Add the jobs that keep getting pushed aside.'
+})
 const selected = computed(() => store.onBack.find((m) => m.id === selectedId.value) ?? null)
 
 function select(id: string) {
   selectedId.value = selectedId.value === id ? null : id
+}
+
+const panel = ref<HTMLElement | null>(null)
+
+// A waiting monkey is not on the tree, so bring its details into view.
+async function pickWaiting(id: string) {
+  showWaiting.value = false
+  selectedId.value = id
+  await nextTick()
+  panel.value?.scrollIntoView({ behavior: 'smooth', block: 'end' })
 }
 
 async function feed(id: string) {
@@ -70,27 +92,44 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
   <main class="page tree-page">
     <header class="top">
       <span class="wordmark">Monkeys on my back</span>
-      <RouterLink to="/fed" class="chip" :aria-label="`${store.fed.length} monkeys fed so far`">
-        <BananaIcon :size="22" />
-        <span>{{ store.fed.length }} fed</span>
-      </RouterLink>
+      <div class="top-actions">
+        <RouterLink to="/fed" class="chip" :aria-label="`${store.fed.length} monkeys fed so far`">
+          <BananaIcon :size="22" />
+          <span>{{ store.fed.length }} fed</span>
+        </RouterLink>
+        <button type="button" class="add" aria-label="Add a new monkey" @click="adding = true">
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
     </header>
 
-    <h1 class="count">{{ countLabel(store.onBack.length) }}</h1>
-    <p class="muted sub">Bigger, grumpier monkeys have been hanging around longer.</p>
+    <h1 class="count">{{ countLabel(store.onBack.length, anyFed) }}</h1>
+    <p class="muted sub">{{ subline }}</p>
 
     <NudgeCard v-if="store.nudge" :nudge="store.nudge" class="nudge" @open="select" />
 
     <div class="tree-wrap">
-      <TroopTree :monkeys="store.onBack" :selected-id="selectedId" @select="select" />
-      <button type="button" class="fab" aria-label="Add a new monkey" @click="adding = true">
-        <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-        </svg>
-      </button>
+      <TroopTree :monkeys="troop.onTree" :selected-id="selectedId" @select="select" />
     </div>
 
-    <div class="panel">
+    <button v-if="troop.waiting.length" type="button" class="waiting" @click="showWaiting = true">
+      <span class="waiting-faces" aria-hidden="true">
+        <span v-for="m in troop.waiting.slice(0, 3)" :key="m.id" class="waiting-face">
+          <MonkeyFace :mood="moodFor(m.createdAt)" />
+        </span>
+      </span>
+      <span class="waiting-text">
+        <strong>{{ troop.waiting.length }} more waiting in the bushes</strong>
+        <span>The tree fits 8. Tap to see them.</span>
+      </span>
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" class="waiting-chev">
+        <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+      </svg>
+    </button>
+
+    <div ref="panel" class="panel">
       <p v-if="store.error" class="error" role="alert">{{ store.error }}</p>
 
       <MonkeySheet
@@ -101,9 +140,20 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
         @remove="remove"
         @close="selectedId = null"
       />
-      <div v-else-if="store.onBack.length === 0 && !store.loading" class="empty">
+      <div v-else-if="isEmpty && anyFed" class="empty">
         <h2>Your back is clear</h2>
-        <p class="muted">Every monkey has been fed. When a job starts nagging you, hang it on the tree.</p>
+        <p class="muted">
+          Every monkey has had its banana. That's {{ store.fed.length }} off your back so far. When a new job starts
+          nagging you, hang it on the tree.
+        </p>
+      </div>
+      <div v-else-if="isEmpty" class="empty">
+        <h2>Start your troop</h2>
+        <p class="muted">
+          Think of a job you keep putting off: the BBQ, the gutters, that course you started. Each one becomes a monkey
+          on your tree.
+        </p>
+        <button type="button" class="btn btn-primary first" @click="adding = true">Add your first monkey</button>
       </div>
       <p v-else class="hint muted">Tap a monkey to see its job.</p>
 
@@ -116,6 +166,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
     </div>
 
     <AddMonkeyDialog :open="adding" @close="adding = false" @add="add" />
+    <WaitingDialog :open="showWaiting" :monkeys="troop.waiting" @close="showWaiting = false" @pick="pickWaiting" />
   </main>
 </template>
 
@@ -131,6 +182,79 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.add {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--leaf-700);
+  color: var(--white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(30, 58, 43, 0.25);
+}
+
+.waiting {
+  margin-top: 10px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  background: var(--banana);
+  color: var(--leaf-900);
+  border: 0;
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  min-height: 60px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(30, 58, 43, 0.15);
+}
+
+.waiting-faces {
+  display: flex;
+  flex: none;
+}
+
+.waiting-face {
+  width: 34px;
+  height: 34px;
+  margin-left: -10px;
+  background: var(--banana);
+  border-radius: 50%;
+}
+
+.waiting-face:first-child {
+  margin-left: 0;
+}
+
+.waiting-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.waiting-text strong {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.waiting-chev {
+  flex: none;
 }
 
 .wordmark {
@@ -197,6 +321,12 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
 
 .empty p {
   margin: 6px 0 0;
+  line-height: 1.45;
+}
+
+.empty .first {
+  margin-top: 14px;
+  width: 100%;
 }
 
 .error {
@@ -237,21 +367,4 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
   transform: translateY(6px);
 }
 
-.fab {
-  position: absolute;
-  right: 0;
-  bottom: 18px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: 0;
-  background: var(--leaf-700);
-  color: var(--white);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6px 16px rgba(30, 58, 43, 0.3);
-  z-index: 5;
-}
 </style>

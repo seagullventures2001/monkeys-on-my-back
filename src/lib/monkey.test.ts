@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { countLabel, formatAge, growth, moodFor, type Monkey } from './monkey'
-import { placeMonkeys, MAX_SEATS } from './layout'
+import { placeMonkeys, splitTroop, MAX_SEATS } from './layout'
 
 const now = new Date('2026-10-17T09:00:00+10:00') // a Saturday morning in Brisbane
 
@@ -36,10 +36,11 @@ describe('formatAge', () => {
 })
 
 describe('moodFor', () => {
-  it('gets grumpier with age', () => {
+  it('gets sadder with age', () => {
     expect(moodFor(daysAgo(7), now)).toBe(0)
-    expect(moodFor(daysAgo(42), now)).toBe(1)
-    expect(moodFor(daysAgo(120), now)).toBe(2)
+    expect(moodFor(daysAgo(21), now)).toBe(1)
+    expect(moodFor(daysAgo(42), now)).toBe(2)
+    expect(moodFor(daysAgo(120), now)).toBe(3)
   })
 })
 
@@ -54,7 +55,8 @@ describe('growth', () => {
 
 describe('countLabel', () => {
   it('handles singular and zero', () => {
-    expect(countLabel(0)).toBe('No monkeys left')
+    expect(countLabel(0)).toBe('No monkeys yet')
+    expect(countLabel(0, true)).toBe('No monkeys left')
     expect(countLabel(1)).toBe('1 monkey on your back')
     expect(countLabel(4)).toBe('4 monkeys on your back')
   })
@@ -72,6 +74,14 @@ describe('placeMonkeys', () => {
     const { placed, overflow } = placeMonkeys(many, now)
     expect(placed).toHaveLength(MAX_SEATS)
     expect(overflow).toBe(3)
+  })
+
+  it('caps the tree at 8 and sends the newest to the waiting list', () => {
+    const many = Array.from({ length: 11 }, (_, i) => monkey(`m${i}`, 100 - i))
+    const { onTree, waiting } = splitTroop(many)
+    expect(MAX_SEATS).toBe(8)
+    expect(onTree.map((m) => m.id)).toEqual(['m0', 'm1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7'])
+    expect(waiting.map((m) => m.id)).toEqual(['m8', 'm9', 'm10'])
   })
 
   it('keeps every monkey inside the tree box', () => {

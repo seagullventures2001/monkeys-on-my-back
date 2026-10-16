@@ -57,14 +57,15 @@ export function formatAge(createdAt: string, now: Date = new Date()): string {
   return years === 1 ? '1 year' : `${years} years`
 }
 
-/** 0 = content, 1 = restless, 2 = grumpy. Drives the face and the eyebrows. */
-export type Mood = 0 | 1 | 2
+/** 0 = very happy, 1 = happy, 2 = stressed, 3 = crying. Drives the face. */
+export type Mood = 0 | 1 | 2 | 3
 
 export function moodFor(createdAt: string, now: Date = new Date()): Mood {
   const weeks = ageInWeeks(createdAt, now)
-  if (weeks < 4) return 0
-  if (weeks < 12) return 1
-  return 2
+  if (weeks < 2) return 0
+  if (weeks < 6) return 1
+  if (weeks < 12) return 2
+  return 3
 }
 
 /**
@@ -87,7 +88,11 @@ export function byAge(a: Monkey, b: Monkey): number {
   return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
 }
 
-export function countLabel(n: number): string {
-  if (n === 0) return 'No monkeys left'
+/**
+ * @param n monkeys currently on your back
+ * @param anyFed whether you have ever fed one (tells a brand-new tree from a cleared one)
+ */
+export function countLabel(n: number, anyFed = false): string {
+  if (n === 0) return anyFed ? 'No monkeys left' : 'No monkeys yet'
   return n === 1 ? '1 monkey on your back' : `${n} monkeys on your back`
 }
