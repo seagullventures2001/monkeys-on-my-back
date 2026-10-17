@@ -4,6 +4,7 @@ import { useTroopStore } from '@/stores/troop'
 import { supabaseConfigured } from '@/lib/supabase'
 import { localRepo } from '@/data/localRepo'
 import { notificationsSupported, requestNotificationPermission, scheduleWeekendNudge } from '@/lib/notifications'
+import { playOne, setSoundEnabled, soundEnabled, unlockAudio } from '@/lib/sound'
 
 const store = useTroopStore()
 
@@ -12,6 +13,15 @@ const linkSent = ref(false)
 const copyMsg = ref('')
 const hasDemo = ref(localRepo.hasDemo())
 const notifMsg = ref('')
+
+const sounds = ref(soundEnabled())
+function toggleSounds() {
+  setSoundEnabled(sounds.value)
+  if (sounds.value) {
+    unlockAudio()
+    playOne('ding')
+  }
+}
 
 async function sendLink() {
   if (!email.value.trim()) return
@@ -71,6 +81,16 @@ async function enableNotifications() {
       <p v-if="store.error" class="error" role="alert">{{ store.error }}</p>
     </section>
 
+    <section class="card">
+      <label class="switch-row" for="sounds-toggle">
+        <span class="switch-text">
+          <h2>Sounds</h2>
+          <span class="muted small">A little tune when you feed a monkey</span>
+        </span>
+        <input id="sounds-toggle" v-model="sounds" type="checkbox" role="switch" class="switch" @change="toggleSounds" />
+      </label>
+    </section>
+
     <section v-if="notificationsSupported()" class="card">
       <h2>Weekend nudges</h2>
       <p>A Saturday morning reminder that names a monkey that fits the time you have.</p>
@@ -122,6 +142,20 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.switch-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .small {

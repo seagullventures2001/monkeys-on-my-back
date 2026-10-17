@@ -11,6 +11,7 @@ import MonkeySheet from '@/components/MonkeySheet.vue'
 import AddMonkeyDialog from '@/components/AddMonkeyDialog.vue'
 import BananaIcon from '@/components/BananaIcon.vue'
 import FeedCelebration from '@/components/FeedCelebration.vue'
+import { unlockAudio } from '@/lib/sound'
 import type { Monkey } from '@/lib/monkey'
 
 const store = useTroopStore()
@@ -54,6 +55,8 @@ async function pickWaiting(id: string) {
 async function feed(id: string) {
   const monkey = store.onBack.find((m) => m.id === id)
   if (!monkey) return
+  // Must happen during the tap itself, or phones won't let the celebration play sound.
+  unlockAudio()
   selectedId.value = null
   leaving.value = monkey
   celebrating.value = monkey
