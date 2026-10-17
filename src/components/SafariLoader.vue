@@ -49,10 +49,30 @@ const roadside = [
       </div>
 
       <svg class="bus" viewBox="0 0 220 130">
-        <!-- banana strapped to the roof rack -->
-        <path d="M70 28 C80 40 110 40 122 26" fill="none" stroke="#f2c230" stroke-width="9" stroke-linecap="round" />
-        <path d="M121 27 L126 21" stroke="#a77a10" stroke-width="3" stroke-linecap="round" />
-        <path d="M40 36 H180 M60 30 V40 M160 30 V40" stroke="#6b4a2b" stroke-width="3" stroke-linecap="round" />
+        <!-- roof rack: rail on little posts -->
+        <path d="M44 33 H176" stroke="#6b4a2b" stroke-width="3" stroke-linecap="round" />
+        <path d="M52 33 V39 M110 33 V39 M168 33 V39" stroke="#6b4a2b" stroke-width="3" stroke-linecap="round" />
+        <!-- a big banana lying on the rack -->
+        <path
+          d="M58 31 C66 21 98 14 132 17 C146 18 156 22 160 28 C150 26 138 25 124 26 C100 27 78 31 64 34 C60 35 57 34 58 31 Z"
+          fill="#f2c230"
+          stroke="#c99a12"
+          stroke-width="1.5"
+          stroke-linejoin="round"
+        />
+        <path d="M70 27 C90 21 120 19 150 23" fill="none" stroke="#fff3c4" stroke-width="2" stroke-linecap="round" opacity="0.8" />
+        <path d="M58 31 L52 29" stroke="#a77a10" stroke-width="3.5" stroke-linecap="round" />
+        <circle cx="160" cy="28" r="2" fill="#5a3d1a" />
+        <!-- ropes tying it down: over the banana and back to the rack, with a knot -->
+        <g fill="none" stroke="#9a7444" stroke-width="2.4" stroke-linecap="round">
+          <path d="M80 34 C78 26 80 20 84 19 C88 18 90 24 89 34" />
+          <path d="M126 34 C124 25 126 18 130 18 C134 18 136 25 135 34" />
+        </g>
+        <g fill="#9a7444">
+          <circle cx="84.5" cy="19.5" r="2" />
+          <circle cx="130.5" cy="18.5" r="2" />
+        </g>
+        <path d="M84 19 L81 13 M84 19 L88 14 M130 18 L127 12 M130 18 L134 13" stroke="#9a7444" stroke-width="1.8" stroke-linecap="round" />
         <!-- body -->
         <rect x="14" y="38" width="190" height="64" rx="16" fill="#e0b45c" />
         <rect x="14" y="80" width="190" height="9" fill="var(--leaf-700)" />

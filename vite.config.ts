@@ -2,8 +2,27 @@ import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
+import { execSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+
+// Version shown at the bottom of Settings: the package.json version plus the git
+// commit it was built from, so any copy of the app can be matched to its code.
+// Vercel provides the commit; locally we ask git.
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
+function gitCommit(): string {
+  if (process.env.VERCEL_GIT_COMMIT_SHA) return process.env.VERCEL_GIT_COMMIT_SHA
+  try {
+    return execSync('git rev-parse HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+  } catch {
+    return 'dev'
+  }
+}
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+    __APP_COMMIT__: JSON.stringify(gitCommit().slice(0, 7)),
+  },
   plugins: [
     vue(),
     // Makes the app installable ("Add to Home Screen") and lets it open offline.
