@@ -3,7 +3,8 @@ import { ref } from 'vue'
 import { useTroopStore } from '@/stores/troop'
 import { supabaseConfigured } from '@/lib/supabase'
 import { localRepo } from '@/data/localRepo'
-import { notificationsSupported, requestNotificationPermission, scheduleWeekendNudge } from '@/lib/notifications'
+import { notificationsSupported, requestNotificationPermission, scheduleReminders } from '@/lib/notifications'
+import { loadPrefs, savePrefs, type Frequency } from '@/lib/reminders'
 import { playOne, setSoundEnabled, soundEnabled, unlockAudio } from '@/lib/sound'
 
 const store = useTroopStore()
@@ -39,10 +40,26 @@ async function clearDemo() {
   await store.refresh()
 }
 
-async function enableNotifications() {
-  const ok = await requestNotificationPermission()
-  if (ok) await scheduleWeekendNudge(store.monkeys)
-  notifMsg.value = ok ? 'Done. You will get a nudge on Saturday mornings.' : 'Notifications are turned off for this app in your phone settings.'
+// Morning reminders: saved on this device. On the phone app they're scheduled straight
+// away; the web version keeps the choice until push notifications are set up.
+const prefs = ref(loadPrefs())
+const native = notificationsSupported()
+const FREQUENCIES: { value: Frequency; label: string }[] = [
+  { value: 'off', label: 'Off' },
+  { value: 'weekends', label: 'Weekends' },
+  { value: 'daily', label: 'Every day' },
+]
+
+async function saveReminders() {
+  savePrefs(prefs.value)
+  notifMsg.value = ''
+  if (!native) return
+  const wantsAny = prefs.value.frequency !== 'off' || prefs.value.dueDates
+  if (wantsAny && !(await requestNotificationPermission())) {
+    notifMsg.value = 'Notifications are turned off for this app in your phone settings.'
+    return
+  }
+  await scheduleReminders(store.monkeys)
 }
 </script>
 
@@ -97,10 +114,34 @@ async function enableNotifications() {
       </label>
     </section>
 
-    <section v-if="notificationsSupported()" class="card">
-      <h2>Weekend nudges</h2>
-      <p>A Saturday morning reminder that names a monkey that fits the time you have.</p>
-      <button type="button" class="btn btn-primary" @click="enableNotifications">Turn on nudges</button>
+    <section class="card">
+      <h2>Morning reminders</h2>
+      <p class="muted small">A gentle nudge with a monkey that suits your free time.</p>
+
+      <fieldset class="freq">
+        <legend class="sr-only">How often</legend>
+        <label v-for="f in FREQUENCIES" :key="f.value" class="pill" :class="{ on: prefs.frequency === f.value }">
+          <input v-model="prefs.frequency" type="radio" name="frequency" :value="f.value" class="sr-only" @change="saveReminders" />
+          {{ f.label }}
+        </label>
+      </fieldset>
+
+      <div v-if="prefs.frequency !== 'off'" class="row-between">
+        <label for="reminder-time"><strong>Time</strong></label>
+        <input id="reminder-time" v-model="prefs.time" type="time" step="900" class="input time" @change="saveReminders" />
+      </div>
+
+      <label class="switch-row" for="due-reminders">
+        <span class="switch-text">
+          <strong>On due dates</strong>
+          <span class="muted small">A reminder the morning a monkey is due</span>
+        </span>
+        <input id="due-reminders" v-model="prefs.dueDates" type="checkbox" role="switch" class="switch" @change="saveReminders" />
+      </label>
+
+      <p v-if="!native" class="note small">
+        Reminders aren't switched on in the web version yet. Your choice is saved and will be used as soon as they are.
+      </p>
       <p v-if="notifMsg" class="muted small" role="status">{{ notifMsg }}</p>
     </section>
 
@@ -173,6 +214,57 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.freq {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 2px solid var(--leaf-300);
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.pill.on {
+  background: var(--leaf-900);
+  border-color: var(--leaf-900);
+  color: var(--white);
+}
+
+.pill:has(input:focus-visible) {
+  outline: 3px solid var(--banana-deep);
+  outline-offset: 2px;
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.time {
+  width: auto;
+  min-width: 130px;
+}
+
+.note {
+  background: var(--leaf-100);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-weight: 600;
 }
 
 .small {

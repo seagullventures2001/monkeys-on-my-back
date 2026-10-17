@@ -8,17 +8,22 @@ function fed(id: string, fedAt = '2026-10-10T00:00:00Z'): Monkey {
 }
 
 describe('placeTroop', () => {
-  it('always has at least one tree, even with no monkeys', () => {
+  it('always has a spare tree, even with no monkeys', () => {
     const p = placeTroop([])
-    expect(p.segments).toBe(1)
-    expect(p.width).toBe(SEGMENT_W)
+    expect(p.segments).toBe(2)
+    expect(p.width).toBe(2 * SEGMENT_W)
     expect(p.monkeys).toHaveLength(0)
   })
 
-  it('adds a tree for every few monkeys', () => {
+  it('adds a tree for every few monkeys, plus one spare', () => {
     const p = placeTroop(Array.from({ length: PER_SEGMENT + 1 }, (_, i) => fed(`m${i}`)))
-    expect(p.segments).toBe(2)
+    expect(p.segments).toBe(3)
     expect(p.monkeys[PER_SEGMENT].x).toBeGreaterThan(SEGMENT_W)
+  })
+
+  it('always fills the screen width', () => {
+    const p = placeTroop([], 1000)
+    expect(p.width).toBeGreaterThanOrEqual(1000)
   })
 
   it('gives a monkey the same spot style every time', () => {

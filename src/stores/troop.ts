@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { localRepo } from '@/data/localRepo'
 import { createSupabaseRepo, fetchPersonalTroopId } from '@/data/supabaseRepo'
 import type { EditableFields, MonkeyRepo } from '@/data/repo'
-import { scheduleWeekendNudge } from '@/lib/notifications'
+import { scheduleReminders } from '@/lib/notifications'
 
 export const useTroopStore = defineStore('troop', () => {
   const monkeys = ref<Monkey[]>([])
@@ -42,7 +42,7 @@ export const useTroopStore = defineStore('troop', () => {
     await run(async () => {
       monkeys.value = await repo.value.list()
     })
-    void scheduleWeekendNudge(monkeys.value)
+    void scheduleReminders(monkeys.value)
   }
 
   async function useSession(s: Session | null) {
@@ -73,7 +73,7 @@ export const useTroopStore = defineStore('troop', () => {
   async function add(input: NewMonkey) {
     const m = await run(() => repo.value.add(input))
     if (m) monkeys.value = [...monkeys.value, m]
-    void scheduleWeekendNudge(monkeys.value)
+    void scheduleReminders(monkeys.value)
     return m
   }
 
@@ -87,7 +87,7 @@ export const useTroopStore = defineStore('troop', () => {
       replace(m)
       lastFed.value = m
     }
-    void scheduleWeekendNudge(monkeys.value)
+    void scheduleReminders(monkeys.value)
   }
 
   async function unfeed(id: string) {

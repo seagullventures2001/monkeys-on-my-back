@@ -65,9 +65,14 @@ const BY_KIND: Record<SpotKind, Activity[]> = {
   ground: ['stroll', 'bounce', 'eat'],
 }
 
-export function placeTroop(fed: Monkey[]): Playground {
+/**
+ * @param minWidth the visible width in pixels; the scene always fills at least this.
+ * There is always one spare tree beyond what the monkeys need, ready for the next ones.
+ */
+export function placeTroop(fed: Monkey[], minWidth = 0): Playground {
   const shown = fed.slice(0, MAX_PLAYGROUND)
-  const segments = Math.max(1, Math.ceil(shown.length / PER_SEGMENT))
+  const needed = Math.max(1, Math.ceil(shown.length / PER_SEGMENT)) + 1
+  const segments = Math.max(needed, Math.ceil(minWidth / SEGMENT_W))
   const monkeys = shown.map((monkey, i) => {
     const seg = Math.floor(i / PER_SEGMENT)
     const spot = SPOTS[i % PER_SEGMENT]
