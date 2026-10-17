@@ -17,8 +17,10 @@ Open the URL Vite prints (usually http://localhost:5173). It starts in **on-devi
 - **Feed a banana**: the monkey grabs a banana and leaps off; the rest shuffle up. Undo for a few seconds afterwards.
 - **Add a monkey**: job, size (15 min → full day, or ongoing), and how long it's *already* been nagging you, so old jobs start at the right size.
 - **Weekend nudge**: picks the oldest job that fits your next free pocket (quick jobs on weeknights, bigger ones on weekend mornings, looks ahead to Saturday from Friday afternoon).
-- **Bananas fed**: history of finished jobs, with "put back" if you ticked one off too early.
-- **Settings**: sign in to sync (once Supabase is set up), copy device monkeys to your account, clear example monkeys, turn on weekend notifications (phone only).
+- **Feeding celebration**: full-screen moment with a tune: the monkey catches, peels and munches a banana while streamers go off.
+- **Troop** (left tab): every fed monkey lives in a playground of trees, eating, waving, napping, swinging, strolling and bouncing. Tap one to see its job. A **List** view shows them all with "put back" and delete. First visit each time the app opens shows a safari-bus loading screen with a fun fact.
+- **Household** (right tab, Pro): a coming-soon page for sharing trees with a partner or family.
+- **Settings** (gear on the tree screen): sign in to sync (once Supabase is set up), copy device monkeys to your account, sounds on/off, clear example monkeys, turn on weekend notifications (phone only).
 
 ## Project layout
 
@@ -32,7 +34,7 @@ src/
   data/supabaseRepo.ts Supabase storage
   stores/troop.ts      Pinia store; picks local or Supabase automatically
   components/          MonkeyFace, TroopTree, NudgeCard, MonkeySheet, AddMonkeyDialog
-  views/               TreeView, FedView, SettingsView
+  views/               TreeView, TroopView, HouseholdView, SettingsView
 supabase/
   migrations/          database schema + row-level security
   tests/rls-test.mjs   checks the security rules as two different users

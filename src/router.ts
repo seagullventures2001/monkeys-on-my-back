@@ -5,8 +5,12 @@ export const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', component: TreeView },
-    { path: '/fed', component: () => import('@/views/FedView.vue') },
+    { path: '/troop', component: () => import('@/views/TroopView.vue') },
+    { path: '/household', component: () => import('@/views/HouseholdView.vue') },
     { path: '/settings', component: () => import('@/views/SettingsView.vue') },
+    // The old "Fed" screen is now the list inside Troop.
+    { path: '/fed', redirect: { path: '/troop', query: { view: 'list' } } },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
+  scrollBehavior: () => ({ top: 0 }),
 })

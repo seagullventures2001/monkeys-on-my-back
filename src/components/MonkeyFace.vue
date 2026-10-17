@@ -3,7 +3,13 @@ import type { Mood } from '@/lib/monkey'
 
 // 0 very happy · 1 happy · 2 stressed · 3 crying
 // chewing: happy squeezed eyes, puffed cheeks and a munching mouth (used while eating the banana).
-withDefaults(defineProps<{ mood?: Mood; label?: string; chewing?: boolean }>(), { mood: 0, label: '', chewing: false })
+// sleeping: a contented nap, eyes closed and a little "o" mouth (Troop playground).
+withDefaults(defineProps<{ mood?: Mood; label?: string; chewing?: boolean; sleeping?: boolean }>(), {
+  mood: 0,
+  label: '',
+  chewing: false,
+  sleeping: false,
+})
 </script>
 
 <template>
@@ -38,9 +44,18 @@ withDefaults(defineProps<{ mood?: Mood; label?: string; chewing?: boolean }>(), 
     </g>
 
     <!-- EYES -->
+    <!-- asleep: relaxed closed eyes -->
+    <path
+      v-if="sleeping"
+      d="M35 50 Q40 54 45 50 M55 50 Q60 54 65 50"
+      fill="none"
+      stroke="#2a1a10"
+      stroke-width="3"
+      stroke-linecap="round"
+    />
     <!-- very happy: squeezed shut with joy -->
     <path
-      v-if="mood === 0 || chewing"
+      v-else-if="mood === 0 || chewing"
       d="M35 51 Q40 44 45 51 M55 51 Q60 44 65 51"
       fill="none"
       stroke="#2a1a10"
@@ -68,8 +83,10 @@ withDefaults(defineProps<{ mood?: Mood; label?: string; chewing?: boolean }>(), 
     <ellipse cx="50" cy="61" rx="3.5" ry="2.2" fill="#6b4a2b" />
 
     <!-- MOUTHS -->
+    <!-- asleep: a small round snore -->
+    <ellipse v-if="sleeping" cx="50" cy="71" rx="3" ry="3.4" fill="#5a2a1c" />
     <!-- chewing: alternates between a closed happy munch and a small open bite -->
-    <g v-if="chewing">
+    <g v-else-if="chewing">
       <path class="munch-closed" d="M42 70 Q50 76 58 70" fill="none" stroke="#2a1a10" stroke-width="3" stroke-linecap="round" />
       <ellipse class="munch-open" cx="50" cy="71" rx="5" ry="3.6" fill="#5a2a1c" stroke="#2a1a10" stroke-width="2" />
     </g>
