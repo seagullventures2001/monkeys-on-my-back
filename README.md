@@ -27,6 +27,12 @@ Open the URL Vite prints (usually http://localhost:5173). It starts in **on-devi
 - **Phone app (Capacitor):** scheduled on the device as local notifications (`src/lib/notifications.ts`), rebuilt whenever the troop changes.
 - **Web / home-screen app:** the choice is saved but nothing is sent yet. Sending to a web app needs Web Push: a small server job (e.g. a Supabase Edge Function on a schedule) plus saving each device's push subscription. `planReminders()` in `src/lib/reminders.ts` already works out what to send and when, so the server can reuse it.
 
+## Versions
+
+The bottom of Settings shows something like **version 0.8.0 (2257a31)**:
+- `0.8.0` is `version` in `package.json`, bumped with each release.
+- `2257a31` is the git commit the build was made from (on Vercel it's the commit that was deployed), so you can find the exact code with `git show 2257a31`.
+
 ## Project layout
 
 ```

@@ -5,6 +5,11 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_ANON_KEY?: string
 }
 
+/** From package.json, set at build time (see vite.config.ts). */
+declare const __APP_VERSION__: string
+/** Short git commit the build came from. */
+declare const __APP_COMMIT__: string
+
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }

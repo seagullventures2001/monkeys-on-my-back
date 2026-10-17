@@ -9,6 +9,9 @@ import { playOne, setSoundEnabled, soundEnabled, unlockAudio } from '@/lib/sound
 
 const store = useTroopStore()
 
+// e.g. "0.8.0 (2257a31)": the app version plus the git commit it was built from.
+const version = `${__APP_VERSION__} (${__APP_COMMIT__})`
+
 const email = ref('')
 const linkSent = ref(false)
 const copyMsg = ref('')
@@ -150,6 +153,7 @@ async function saveReminders() {
       <p>The tree started with a few example jobs so it was not empty. Clear them when you are ready to add your own.</p>
       <button type="button" class="btn btn-ghost" @click="clearDemo">Clear example monkeys</button>
     </section>
+    <p class="version">Monkeys on My Back · version {{ version }}</p>
   </main>
 </template>
 
@@ -274,6 +278,14 @@ h1 {
 .error {
   color: var(--danger);
   font-weight: 700;
+}
+
+.version {
+  margin: 24px 0 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-muted);
 }
 
 code {

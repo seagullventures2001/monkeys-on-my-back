@@ -13,6 +13,7 @@ import BananaIcon from '@/components/BananaIcon.vue'
 import FeedCelebration from '@/components/FeedCelebration.vue'
 import WelcomeDialog from '@/components/WelcomeDialog.vue'
 import { unlockAudio } from '@/lib/sound'
+import { requestRide } from '@/lib/session'
 import type { Monkey } from '@/lib/monkey'
 
 const store = useTroopStore()
@@ -99,7 +100,22 @@ watch(selectedId, async (id) => {
 function onKey(e: KeyboardEvent) {
   if (e.key === 'Escape' && selectedId.value && !adding.value && !celebrating.value) selectedId.value = null
 }
-onMounted(() => window.addEventListener('keydown', onKey))
+
+// Tapping anywhere outside the details (and not on another monkey) closes them.
+// Left open while editing, so a stray tap doesn't throw away changes.
+function onPointerDown(e: PointerEvent) {
+  if (!selectedId.value || !sheet.value) return
+  const target = e.target as Element | null
+  if (!target || sheet.value.contains(target)) return
+  if (target.closest('.tree .monkey, .nudge, dialog')) return
+  if (sheet.value.querySelector('form')) return
+  selectedId.value = null
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKey)
+  document.addEventListener('pointerdown', onPointerDown)
+})
 
 async function feed(id: string) {
   const monkey = store.onBack.find((m) => m.id === id)
@@ -168,6 +184,7 @@ onBeforeUnmount(() => {
   clearTimeout(toastTimer)
   sheetResize?.disconnect()
   window.removeEventListener('keydown', onKey)
+  document.removeEventListener('pointerdown', onPointerDown)
 })
 </script>
 
@@ -190,7 +207,7 @@ onBeforeUnmount(() => {
         <span class="wordmark">Monkeys on my back</span>
       </div>
       <div class="top-actions">
-        <RouterLink to="/troop" class="chip" :aria-label="`${store.fed.length} monkeys fed so far. See your troop.`">
+        <RouterLink to="/troop" class="chip" :aria-label="`${store.fed.length} monkeys fed so far. Ride out to your troop.`" @click="requestRide">
           <BananaIcon :size="22" />
           <span>{{ store.fed.length }}</span>
         </RouterLink>
