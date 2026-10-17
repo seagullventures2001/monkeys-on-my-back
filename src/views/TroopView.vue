@@ -6,7 +6,6 @@ import TroopPlayground from '@/components/TroopPlayground.vue'
 import SafariLoader from '@/components/SafariLoader.vue'
 import MonkeyFace from '@/components/MonkeyFace.vue'
 import { fedThisMonth, waited } from '@/lib/playground'
-import { troopVisited, markTroopVisited, takeRideRequest } from '@/lib/session'
 
 const store = useTroopStore()
 const route = useRoute()
@@ -18,16 +17,13 @@ function setView(v: 'playground' | 'list') {
   void router.replace({ query: v === 'list' ? { view: 'list' } : {} })
 }
 
-// The safari bus shows on the first visit each time the app is opened (long enough
-// to read a fun fact), and whenever the monkeys are still loading. Tap to skip.
-const MIN_LOADER_MS = 2600
-// The banana counter on the tree screen always asks for the ride.
-const rideRequested = takeRideRequest()
-const minTimeDone = ref(troopVisited() && !rideRequested)
+// The safari bus drives you to the troop every time you come here (from the menu or
+// the banana counter), long enough to read the fun fact. Tap anywhere to skip.
+const RIDE_MS = 4500
+const minTimeDone = ref(false)
 let timer: ReturnType<typeof setTimeout> | undefined
 onMounted(() => {
-  if (!minTimeDone.value) timer = setTimeout(() => (minTimeDone.value = true), MIN_LOADER_MS)
-  markTroopVisited()
+  timer = setTimeout(() => (minTimeDone.value = true), RIDE_MS)
 })
 onBeforeUnmount(() => clearTimeout(timer))
 const showLoader = computed(() => store.loading || !minTimeDone.value)

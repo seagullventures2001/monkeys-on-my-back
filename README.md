@@ -19,7 +19,7 @@ Open the URL Vite prints (usually http://localhost:5173). It starts in **on-devi
 - **Nudge card**: picks the oldest job that fits your next free pocket (quick jobs on weeknights, bigger ones on weekend mornings, looks ahead to Saturday from Friday afternoon). Anything due within 3 days comes first.
 - **Monkey details** slide up from the bottom when you tap a monkey, so they're visible on any phone size.
 - **Feeding celebration**: full-screen moment with a tune: the monkey catches, peels and munches a banana while streamers go off.
-- **Troop** (left tab): every fed monkey lives in a playground of trees, eating, waving, napping, swinging, strolling and bouncing. Tap one to see its job. A **List** view shows them all with "put back" and delete. First visit each time the app opens shows a safari-bus loading screen with a fun fact.
+- **Troop** (left tab): every fed monkey lives in a playground of trees, eating, waving, napping, swinging, strolling and bouncing. Tap one to see its job. A **List** view shows them all with "put back" and delete. Every visit starts with a safari-bus ride (about 4.5 seconds, tap to skip) and a fun fact.
 - **Household** (right tab, Pro): a coming-soon page for sharing trees with a partner or family.
 - **Settings** (gear on the tree screen): sign in to sync (once Supabase is set up), copy device monkeys to your account, sounds on/off, and **morning reminders** (Off / Weekends / Every day, a time, and a reminder on due dates; default weekends at 8am).
 
@@ -29,8 +29,8 @@ Open the URL Vite prints (usually http://localhost:5173). It starts in **on-devi
 
 ## Versions
 
-The bottom of Settings shows something like **version 0.9.0 (2257a31)**:
-- `0.9.0` is `version` in `package.json`, bumped with each release.
+The bottom of Settings shows something like **version 0.9.1 (2257a31)**:
+- `0.9.1` is `version` in `package.json`, bumped with each release.
 - `2257a31` is the git commit the build was made from (on Vercel it's the commit that was deployed), so you can find the exact code with `git show 2257a31`.
 
 ## Project layout
