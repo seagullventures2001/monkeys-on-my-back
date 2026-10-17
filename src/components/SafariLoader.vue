@@ -52,27 +52,27 @@ const roadside = [
         <!-- roof rack: rail on little posts -->
         <path d="M44 33 H176" stroke="#6b4a2b" stroke-width="3" stroke-linecap="round" />
         <path d="M52 33 V39 M110 33 V39 M168 33 V39" stroke="#6b4a2b" stroke-width="3" stroke-linecap="round" />
-        <!-- a big banana lying on the rack -->
+        <!-- a big banana resting on the rack, ends curling up -->
         <path
-          d="M58 31 C66 21 98 14 132 17 C146 18 156 22 160 28 C150 26 138 25 124 26 C100 27 78 31 64 34 C60 35 57 34 58 31 Z"
+          d="M57 9 C68 20 90 25 110 25 C130 25 152 20 163 7 C166 9 166 13 164 16 C152 29 130 33 110 33 C90 33 66 29 56 17 C53 14 54 10 57 9 Z"
           fill="#f2c230"
           stroke="#c99a12"
           stroke-width="1.5"
           stroke-linejoin="round"
         />
-        <path d="M70 27 C90 21 120 19 150 23" fill="none" stroke="#fff3c4" stroke-width="2" stroke-linecap="round" opacity="0.8" />
-        <path d="M58 31 L52 29" stroke="#a77a10" stroke-width="3.5" stroke-linecap="round" />
-        <circle cx="160" cy="28" r="2" fill="#5a3d1a" />
-        <!-- ropes tying it down: over the banana and back to the rack, with a knot -->
+        <path d="M68 19 C88 27 132 27 152 18" fill="none" stroke="#fff3c4" stroke-width="2" stroke-linecap="round" opacity="0.85" />
+        <path d="M57 10 L52 4" stroke="#a77a10" stroke-width="3.5" stroke-linecap="round" />
+        <circle cx="164" cy="9" r="2" fill="#5a3d1a" />
+        <!-- ropes over the middle, tied to the rack, with a knot on top -->
         <g fill="none" stroke="#9a7444" stroke-width="2.4" stroke-linecap="round">
-          <path d="M80 34 C78 26 80 20 84 19 C88 18 90 24 89 34" />
-          <path d="M126 34 C124 25 126 18 130 18 C134 18 136 25 135 34" />
+          <path d="M91 35 C90 29 92 23.5 96 23 C100 23 101 29 100 35" />
+          <path d="M120 35 C119 29 121 23.5 125 23 C129 23 130 29 129 35" />
         </g>
         <g fill="#9a7444">
-          <circle cx="84.5" cy="19.5" r="2" />
-          <circle cx="130.5" cy="18.5" r="2" />
+          <circle cx="96" cy="23" r="2" />
+          <circle cx="125" cy="23" r="2" />
         </g>
-        <path d="M84 19 L81 13 M84 19 L88 14 M130 18 L127 12 M130 18 L134 13" stroke="#9a7444" stroke-width="1.8" stroke-linecap="round" />
+        <path d="M96 23 L93 17 M96 23 L100 18 M125 23 L122 17 M125 23 L129 18" stroke="#9a7444" stroke-width="1.8" stroke-linecap="round" />
         <!-- body -->
         <rect x="14" y="38" width="190" height="64" rx="16" fill="#e0b45c" />
         <rect x="14" y="80" width="190" height="9" fill="var(--leaf-700)" />
