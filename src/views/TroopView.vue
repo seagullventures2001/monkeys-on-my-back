@@ -82,7 +82,7 @@ watch(count, (n) => {
 
     <template v-if="view === 'playground'">
       <TroopPlayground :monkeys="store.fed" class="playground" />
-      <p v-if="store.fed.length > 7" class="hint muted">Swipe sideways to see the rest of the troop. Tap a monkey to see its job.</p>
+      <p v-if="store.fed.length >= 7" class="hint muted">Swipe sideways to see the rest of the troop. Tap a monkey to see its job.</p>
       <p v-else-if="store.fed.length > 0" class="hint muted">Tap a monkey to see which job it was.</p>
     </template>
 

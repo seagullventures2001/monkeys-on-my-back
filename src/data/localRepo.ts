@@ -2,28 +2,9 @@ import type { Monkey, NewMonkey } from '@/lib/monkey'
 import type { EditableFields, MonkeyRepo } from './repo'
 
 const KEY = 'momb.monkeys.v1'
-const SEEDED_KEY = 'momb.seeded.v1'
 export const LOCAL_TROOP = 'local'
+// Early versions added example monkeys with ids starting "demo-"; Settings can still clear them.
 export const DEMO_PREFIX = 'demo-'
-
-const DAY = 24 * 60 * 60 * 1000
-
-function daysAgo(n: number): string {
-  return new Date(Date.now() - n * DAY).toISOString()
-}
-
-/** A few example monkeys so the tree is not empty the first time you open it. */
-function demoMonkeys(): Monkey[] {
-  const base = { troopId: LOCAL_TROOP, notes: null, fedAt: null, dueOn: null }
-  return [
-    { ...base, id: `${DEMO_PREFIX}course`, title: 'Finish the online course', effort: 'ongoing', createdAt: daysAgo(240) },
-    { ...base, id: `${DEMO_PREFIX}gurney`, title: 'Gurney the house', effort: 'full', createdAt: daysAgo(150) },
-    { ...base, id: `${DEMO_PREFIX}tree`, title: 'Trim the front tree', effort: 'half', createdAt: daysAgo(60) },
-    { ...base, id: `${DEMO_PREFIX}bbq`, title: 'Clean the BBQ', effort: 'hour', createdAt: daysAgo(42) },
-    { ...base, id: `${DEMO_PREFIX}door`, title: 'Repaint the back door', effort: 'half', createdAt: daysAgo(21) },
-    { ...base, id: `${DEMO_PREFIX}gate`, title: 'Fix the gate latch', effort: 'quick', createdAt: daysAgo(7) },
-  ]
-}
 
 function newId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID()
@@ -36,12 +17,6 @@ let memory: Monkey[] = []
 // localStorage can throw (private mode, storage full), so every access is guarded.
 function read(): Monkey[] {
   try {
-    if (!localStorage.getItem(SEEDED_KEY)) {
-      localStorage.setItem(SEEDED_KEY, '1')
-      const seeded = demoMonkeys()
-      localStorage.setItem(KEY, JSON.stringify(seeded))
-      return seeded
-    }
     const raw = localStorage.getItem(KEY)
     // Monkeys saved before due dates existed have no dueOn field.
     return raw ? (JSON.parse(raw) as Monkey[]).map((m) => ({ ...m, dueOn: m.dueOn ?? null })) : []

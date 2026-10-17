@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import MonkeyFigure from './MonkeyFigure.vue'
 import PeeledBanana from './PeeledBanana.vue'
 import type { Monkey } from '@/lib/monkey'
@@ -9,7 +9,19 @@ import { GROUND_Y, SCENE_H, SEGMENT_W, placeTroop, waited, type PlaygroundMonkey
 // swinging, strolling and bouncing. Tap one to see which job it was.
 const props = defineProps<{ monkeys: Monkey[] }>()
 
-const scene = computed(() => placeTroop(props.monkeys))
+// Measure the visible width so the playground always fills it (no empty gap).
+const scroller = ref<HTMLElement | null>(null)
+const visibleWidth = ref(0)
+let resize: ResizeObserver | undefined
+onMounted(() => {
+  if (!scroller.value) return
+  visibleWidth.value = scroller.value.clientWidth
+  resize = new ResizeObserver(() => (visibleWidth.value = scroller.value?.clientWidth ?? 0))
+  resize.observe(scroller.value)
+})
+onBeforeUnmount(() => resize?.disconnect())
+
+const scene = computed(() => placeTroop(props.monkeys, visibleWidth.value))
 const selectedId = ref<string | null>(null)
 const selected = computed(() => scene.value.monkeys.find((p) => p.monkey.id === selectedId.value) ?? null)
 
@@ -65,7 +77,7 @@ const segments = computed(() => Array.from({ length: scene.value.segments }, (_,
 </script>
 
 <template>
-  <div class="scroller" tabindex="0" aria-label="Your troop's playground. Scroll sideways to see more trees.">
+  <div ref="scroller" class="scroller" tabindex="0" aria-label="Your troop's playground. Scroll sideways to see more trees.">
     <div class="scene" :style="{ width: `${scene.width}px`, height: `${SCENE_H}px` }" @click.self="selectedId = null">
       <svg class="backdrop" :viewBox="`0 0 ${scene.width} ${SCENE_H}`" :width="scene.width" :height="SCENE_H" aria-hidden="true">
         <!-- distant hills -->

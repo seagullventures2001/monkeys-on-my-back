@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useTroopStore } from '@/stores/troop'
 import { countLabel, moodFor, type Effort, type NewMonkey } from '@/lib/monkey'
 import { splitTroop } from '@/lib/layout'
@@ -11,6 +11,7 @@ import MonkeySheet from '@/components/MonkeySheet.vue'
 import AddMonkeyDialog from '@/components/AddMonkeyDialog.vue'
 import BananaIcon from '@/components/BananaIcon.vue'
 import FeedCelebration from '@/components/FeedCelebration.vue'
+import WelcomeDialog from '@/components/WelcomeDialog.vue'
 import { unlockAudio } from '@/lib/sound'
 import type { Monkey } from '@/lib/monkey'
 
@@ -21,6 +22,27 @@ const toast = ref<{ id: string; title: string } | null>(null)
 let toastTimer: ReturnType<typeof setTimeout> | undefined
 
 const showWaiting = ref(false)
+
+// First launch with an empty tree: explain what a monkey is.
+const WELCOMED_KEY = 'momb.welcomed.v1'
+function seenWelcome(): boolean {
+  try {
+    return localStorage.getItem(WELCOMED_KEY) === '1'
+  } catch {
+    return true
+  }
+}
+const welcomeDismissed = ref(seenWelcome())
+const showWelcome = computed(() => !welcomeDismissed.value && !store.loading && store.monkeys.length === 0)
+function closeWelcome(addNow: boolean) {
+  welcomeDismissed.value = true
+  try {
+    localStorage.setItem(WELCOMED_KEY, '1')
+  } catch {
+    // Not remembered; it will show again next time, which is harmless.
+  }
+  if (addNow) adding.value = true
+}
 
 // The monkey being celebrated, and the one still waving goodbye on the tree afterwards.
 const celebrating = ref<Monkey | null>(null)
@@ -42,15 +64,42 @@ function select(id: string) {
   selectedId.value = selectedId.value === id ? null : id
 }
 
-const panel = ref<HTMLElement | null>(null)
-
-// A waiting monkey is not on the tree, so bring its details into view.
-async function pickWaiting(id: string) {
+function pickWaiting(id: string) {
   showWaiting.value = false
   selectedId.value = id
-  await nextTick()
-  panel.value?.scrollIntoView({ behavior: 'smooth', block: 'end' })
 }
+
+// The details slide up from the bottom of the screen, so they're always in view
+// whatever the phone size. If the sheet would cover the monkey that was tapped,
+// scroll the page so the monkey stays visible above it.
+const sheet = ref<HTMLElement | null>(null)
+const sheetHeight = ref(0)
+let sheetResize: ResizeObserver | undefined
+
+watch(selectedId, async (id) => {
+  sheetResize?.disconnect()
+  if (!id) {
+    sheetHeight.value = 0
+    return
+  }
+  await nextTick()
+  if (!sheet.value) return
+  sheetHeight.value = sheet.value.offsetHeight
+  sheetResize = new ResizeObserver(() => (sheetHeight.value = sheet.value?.offsetHeight ?? 0))
+  sheetResize.observe(sheet.value)
+  sheet.value.focus({ preventScroll: true })
+  await nextTick()
+  const monkey = document.querySelector('.tree .monkey.selected')
+  if (monkey) {
+    const gap = monkey.getBoundingClientRect().bottom - sheet.value.getBoundingClientRect().top + 16
+    if (gap > 0) window.scrollBy({ top: gap, behavior: 'smooth' })
+  }
+})
+
+function onKey(e: KeyboardEvent) {
+  if (e.key === 'Escape' && selectedId.value && !adding.value && !celebrating.value) selectedId.value = null
+}
+onMounted(() => window.addEventListener('keydown', onKey))
 
 async function feed(id: string) {
   const monkey = store.onBack.find((m) => m.id === id)
@@ -115,11 +164,15 @@ watch(
   },
 )
 
-onBeforeUnmount(() => clearTimeout(toastTimer))
+onBeforeUnmount(() => {
+  clearTimeout(toastTimer)
+  sheetResize?.disconnect()
+  window.removeEventListener('keydown', onKey)
+})
 </script>
 
 <template>
-  <main class="page tree-page">
+  <main class="page tree-page" :style="{ '--sheet-space': `${sheetHeight}px` }">
     <header class="top">
       <div class="brand">
         <RouterLink to="/settings" class="gear" aria-label="Settings">
@@ -173,18 +226,10 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
       </svg>
     </button>
 
-    <div ref="panel" class="panel">
+    <div class="panel">
       <p v-if="store.error" class="error" role="alert">{{ store.error }}</p>
 
-      <MonkeySheet
-        v-if="selected"
-        :monkey="selected"
-        @feed="feed"
-        @save="save"
-        @remove="remove"
-        @close="selectedId = null"
-      />
-      <div v-else-if="isEmpty && anyFed" class="empty">
+      <div v-if="isEmpty && anyFed" class="empty">
         <h2>Your back is clear</h2>
         <p class="muted">
           Every monkey has had its banana. That's {{ store.fed.length }} off your back so far. When a new job starts
@@ -209,6 +254,25 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
       </Transition>
     </div>
 
+    <Transition name="sheet">
+      <section
+        v-if="selected"
+        ref="sheet"
+        class="details-sheet"
+        tabindex="-1"
+        aria-label="Monkey details"
+      >
+        <span class="handle" aria-hidden="true" />
+        <button type="button" class="close" aria-label="Close details" @click="selectedId = null">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+          </svg>
+        </button>
+        <MonkeySheet :monkey="selected" @feed="feed" @save="save" @remove="remove" @close="selectedId = null" />
+      </section>
+    </Transition>
+
+    <WelcomeDialog v-if="showWelcome" @add="closeWelcome(true)" @close="closeWelcome(false)" />
     <AddMonkeyDialog :open="adding" @close="adding = false" @add="add" />
     <Transition name="celebrate">
       <FeedCelebration v-if="celebrating" :monkey="celebrating" :fed-count="store.fed.length" @continue="finishCelebration" />
@@ -218,6 +282,68 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
 </template>
 
 <style scoped>
+/* Monkey details: slides up from just above the menu. */
+.details-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: calc(64px + var(--safe-bottom));
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100dvh - 150px);
+  overflow-y: auto;
+  z-index: 9;
+  padding: 24px 20px 34px;
+  background: var(--white);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 -10px 30px rgba(30, 58, 43, 0.18);
+}
+
+.details-sheet:focus {
+  outline: none;
+}
+
+.handle {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--leaf-300);
+}
+
+.close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--leaf-100);
+  color: var(--leaf-900);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.details-sheet :deep(h2) {
+  padding-right: 48px;
+}
+
+.sheet-enter-active,
+.sheet-leave-active {
+  transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.sheet-enter-from,
+.sheet-leave-to {
+  transform: translateX(-50%) translateY(110%);
+}
+
 .tree-page {
   min-height: 100dvh;
   display: flex;
@@ -373,7 +499,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
   position: relative;
   flex: 1;
   margin: 4px -20px 0;
-  padding: 20px 20px calc(92px + var(--safe-bottom));
+  padding: 20px 20px calc(92px + var(--safe-bottom) + var(--sheet-space, 0px));
   min-height: 150px;
   background: var(--white);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;

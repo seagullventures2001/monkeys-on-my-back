@@ -9,18 +9,23 @@ npm install
 npm run dev
 ```
 
-Open the URL Vite prints (usually http://localhost:5173). It starts in **on-device mode**: monkeys are saved in your browser, and the tree comes with six example monkeys you can clear in Settings.
+Open the URL Vite prints (usually http://localhost:5173). It starts in **on-device mode**: monkeys are saved in your browser. The first time it opens, a short welcome explains what a monkey is and how to add one.
 
 ## What's in this first version
 
 - **Tree screen**: monkeys sit on branches, oldest at the top. They grow bigger with age and their mood slides: very happy (under 2 weeks), happy (under 6), stressed (under 12), then crying.
 - **Feed a banana**: the monkey grabs a banana and leaps off; the rest shuffle up. Undo for a few seconds afterwards.
 - **Add a monkey**: job, size (15 min → full day, or ongoing), and how long it's *already* been nagging you, so old jobs start at the right size.
-- **Weekend nudge**: picks the oldest job that fits your next free pocket (quick jobs on weeknights, bigger ones on weekend mornings, looks ahead to Saturday from Friday afternoon).
+- **Nudge card**: picks the oldest job that fits your next free pocket (quick jobs on weeknights, bigger ones on weekend mornings, looks ahead to Saturday from Friday afternoon). Anything due within 3 days comes first.
+- **Monkey details** slide up from the bottom when you tap a monkey, so they're visible on any phone size.
 - **Feeding celebration**: full-screen moment with a tune: the monkey catches, peels and munches a banana while streamers go off.
 - **Troop** (left tab): every fed monkey lives in a playground of trees, eating, waving, napping, swinging, strolling and bouncing. Tap one to see its job. A **List** view shows them all with "put back" and delete. First visit each time the app opens shows a safari-bus loading screen with a fun fact.
 - **Household** (right tab, Pro): a coming-soon page for sharing trees with a partner or family.
-- **Settings** (gear on the tree screen): sign in to sync (once Supabase is set up), copy device monkeys to your account, sounds on/off, clear example monkeys, turn on weekend notifications (phone only).
+- **Settings** (gear on the tree screen): sign in to sync (once Supabase is set up), copy device monkeys to your account, sounds on/off, and **morning reminders** (Off / Weekends / Every day, a time, and a reminder on due dates; default weekends at 8am).
+
+### Reminders: what works where
+- **Phone app (Capacitor):** scheduled on the device as local notifications (`src/lib/notifications.ts`), rebuilt whenever the troop changes.
+- **Web / home-screen app:** the choice is saved but nothing is sent yet. Sending to a web app needs Web Push: a small server job (e.g. a Supabase Edge Function on a schedule) plus saving each device's push subscription. `planReminders()` in `src/lib/reminders.ts` already works out what to send and when, so the server can reuse it.
 
 ## Project layout
 
