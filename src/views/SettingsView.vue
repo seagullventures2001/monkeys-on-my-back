@@ -48,6 +48,12 @@ async function enableNotifications() {
 
 <template>
   <main class="page">
+    <RouterLink to="/" class="back">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      Back to the tree
+    </RouterLink>
     <h1>Settings</h1>
 
     <section class="card">
@@ -107,6 +113,17 @@ async function enableNotifications() {
 </template>
 
 <style scoped>
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin-bottom: 4px;
+  color: var(--leaf-700);
+  font-weight: 800;
+  text-decoration: none;
+}
+
 h1 {
   font-size: 36px;
   font-weight: 800;

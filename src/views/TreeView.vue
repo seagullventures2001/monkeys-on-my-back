@@ -121,11 +121,25 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
 <template>
   <main class="page tree-page">
     <header class="top">
-      <span class="wordmark">Monkeys on my back</span>
+      <div class="brand">
+        <RouterLink to="/settings" class="gear" aria-label="Settings">
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2.2" />
+            <path
+              d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </RouterLink>
+        <span class="wordmark">Monkeys on my back</span>
+      </div>
       <div class="top-actions">
-        <RouterLink to="/fed" class="chip" :aria-label="`${store.fed.length} monkeys fed so far`">
+        <RouterLink to="/troop" class="chip" :aria-label="`${store.fed.length} monkeys fed so far. See your troop.`">
           <BananaIcon :size="22" />
-          <span>{{ store.fed.length }} fed</span>
+          <span>{{ store.fed.length }}</span>
         </RouterLink>
         <button type="button" class="add" aria-label="Add a new monkey" @click="adding = true">
           <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
@@ -290,14 +304,38 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
   flex: none;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.gear {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--leaf-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .wordmark {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 17px;
+  font-size: 15px;
   color: var(--leaf-700);
 }
 
 .chip {
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 6px;
