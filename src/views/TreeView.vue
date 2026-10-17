@@ -13,7 +13,6 @@ import BananaIcon from '@/components/BananaIcon.vue'
 import FeedCelebration from '@/components/FeedCelebration.vue'
 import WelcomeDialog from '@/components/WelcomeDialog.vue'
 import { unlockAudio } from '@/lib/sound'
-import { requestRide } from '@/lib/session'
 import type { Monkey } from '@/lib/monkey'
 
 const store = useTroopStore()
@@ -207,7 +206,7 @@ onBeforeUnmount(() => {
         <span class="wordmark">Monkeys on my back</span>
       </div>
       <div class="top-actions">
-        <RouterLink to="/troop" class="chip" :aria-label="`${store.fed.length} monkeys fed so far. Ride out to your troop.`" @click="requestRide">
+        <RouterLink to="/troop" class="chip" :aria-label="`${store.fed.length} monkeys fed so far. Ride out to your troop.`">
           <BananaIcon :size="22" />
           <span>{{ store.fed.length }}</span>
         </RouterLink>
