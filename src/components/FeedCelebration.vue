@@ -4,6 +4,7 @@ import MonkeyFigure from './MonkeyFigure.vue'
 import { formatAge, moodFor, type Monkey } from '@/lib/monkey'
 import { monkeySize } from '@/lib/layout'
 import { celebrationMessage } from '@/lib/celebration'
+import { playCelebration, playSequence, type Playback } from '@/lib/sound'
 
 /**
  * Full-screen "you fed a monkey" moment.
@@ -77,9 +78,14 @@ function goTo(p: number) {
 }
 
 /** Tapping before the end skips straight to the result. */
+let sound: Playback | null = null
+
 function skip() {
   if (phase.value < DONE) {
     timers.forEach(clearTimeout)
+    // Cut the sound effects short and finish on the happy chord.
+    sound?.stop()
+    sound = playSequence([{ at: 0, sound: 'fanfare' }])
     goTo(9)
   }
 }
@@ -87,13 +93,18 @@ function skip() {
 onMounted(() => {
   document.documentElement.style.overflow = 'hidden'
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-  if (reduced) return goTo(9)
+  if (reduced) {
+    sound = playSequence([{ at: 0, sound: 'fanfare' }])
+    return goTo(9)
+  }
+  sound = playCelebration()
   for (const s of STEPS) timers.push(setTimeout(() => goTo(s.phase), s.at))
   timers.push(setTimeout(() => navigator.vibrate?.(25), 1150))
 })
 
 onBeforeUnmount(() => {
   timers.forEach(clearTimeout)
+  sound?.stop()
   document.documentElement.style.overflow = ''
 })
 </script>
