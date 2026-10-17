@@ -153,6 +153,72 @@ async function saveReminders() {
       <p>The tree started with a few example jobs so it was not empty. Clear them when you are ready to add your own.</p>
       <button type="button" class="btn btn-ghost" @click="clearDemo">Clear example monkeys</button>
     </section>
+    <section class="card help" aria-labelledby="help-title">
+      <h2 id="help-title">Help</h2>
+
+      <details>
+        <summary>What's a monkey?</summary>
+        <p>
+          A job you keep putting off: clean the BBQ, gurney the house, finish that course. Not urgent, but it nags at you.
+          The longer it waits, the bigger and sadder its monkey gets: happy, then stressed, then in tears.
+        </p>
+      </details>
+
+      <details>
+        <summary>Tree (the middle tab)</summary>
+        <p>
+          Your monkeys still waiting for a banana. Tap <strong>+</strong> to add one, giving it a size (15 minutes to a
+          full day) and, if you like, a due date. Tap a monkey to see its details, edit it, or feed it.
+        </p>
+        <p>
+          The tree fits 8. Jobs due soon and the longest-waiting ones get the seats; the rest wait in the bushes
+          below the tree. The green card at the top suggests a job that fits your next free moment.
+        </p>
+      </details>
+
+      <details>
+        <summary>Feeding a banana</summary>
+        <p>
+          Done a job? Open its monkey and tap <strong>Feed a banana</strong>. It catches, peels and eats it, then jumps
+          off your back and moves into your troop. Fed one by mistake? Tap <strong>Undo</strong>, or put it back from the
+          Troop list.
+        </p>
+      </details>
+
+      <details>
+        <summary>Troop (the left tab)</summary>
+        <p>
+          Every monkey you've fed lives here, having a great time. Tap one to see which job it was. Switch to
+          <strong>List</strong> to see them all, put one back on the tree, or delete it for good. The banana counter
+          on the tree screen takes you here too.
+        </p>
+      </details>
+
+      <details>
+        <summary>Household (the right tab)</summary>
+        <p>
+          Coming soon as part of Pro: share trees with a partner or family, hand jobs to each other, and a family mode
+          where kids feed the monkeys and a parent approves.
+        </p>
+      </details>
+
+      <details>
+        <summary>Reminders and due dates</summary>
+        <p>
+          Morning reminders nudge you with a monkey that suits your day, on weekends or every day. Give a monkey a due
+          date and it gets a top seat on the tree as the date gets close, plus a reminder that morning.
+        </p>
+      </details>
+
+      <details>
+        <summary>Putting it on your phone's home screen</summary>
+        <p>
+          iPhone: open the app in Safari or Chrome, tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.
+          Android: open it in Chrome, tap <strong>⋮</strong>, then <strong>Install app</strong>.
+        </p>
+      </details>
+    </section>
+
     <p class="version">Monkeys on My Back · version {{ version }}</p>
   </main>
 </template>
@@ -278,6 +344,49 @@ h1 {
 .error {
   color: var(--danger);
   font-weight: 700;
+}
+
+.help details {
+  border-top: 1px solid var(--leaf-200);
+  padding: 4px 0;
+}
+
+.help summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+
+.help summary::-webkit-details-marker {
+  display: none;
+}
+
+.help summary::after {
+  content: '';
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-right: 2.5px solid var(--leaf-700);
+  border-bottom: 2.5px solid var(--leaf-700);
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  margin-right: 4px;
+}
+
+.help details[open] summary::after {
+  transform: rotate(-135deg);
+}
+
+.help details p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--leaf-900);
 }
 
 .version {
