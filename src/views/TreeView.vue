@@ -66,8 +66,8 @@ const showTip = computed(
     !celebrating.value &&
     !selectedId.value,
 )
-// Sizing: you stand from the top of the tree down to just above the menu, as tall as the
-// screen allows (aiming for about 70% of it), with your feet towards the camera.
+// Sizing: your head is level with the tree's top branch and your feet stand just in front
+// of the tree's base.
 // The monkeys are drawn on top of you, so they're always clear and tappable.
 const treeWrap = ref<HTMLElement | null>(null)
 const meVars = ref<Record<string, string>>({})
@@ -78,13 +78,12 @@ function measureMe() {
   const vh = window.innerHeight
   const treeTop = wrap.getBoundingClientRect().top + window.scrollY
   const treeH = wrap.offsetHeight
-  const treeW = wrap.offsetWidth
   const navH = document.querySelector('.tabs')?.getBoundingClientRect().height ?? 80
   const room = vh - treeTop - navH - 6
-  // You stand at the left edge, head as far left as it goes without being cut off.
-  // Height is capped so your waving hand and body stay left of every monkey's seat
-  // (seats on the left side sit from about 30% of the tree's width).
-  const h = Math.round(Math.min(Math.max(room, treeH * 0.7), treeW * 1.08, vh * 0.62))
+  // You stand at the left edge, head as far left as it goes without being cut off,
+  // with the top of your head level with the tree's top branch.
+  const TOP_BRANCH = 108 / 380
+  const h = Math.round(Math.min(treeH * (1.05 - TOP_BRANCH), Math.max(room, treeH * 0.6)))
   const w = h * AVATAR_RATIO
   const left = Math.round(-w * 0.2 - 8)
   // Feet just in front of the tree's base, like you're standing a step closer to the camera.
