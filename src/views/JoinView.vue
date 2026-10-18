@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AvatarFigure from '@/components/AvatarFigure.vue'
+import SignInForm from '@/components/SignInForm.vue'
 import { supabase } from '@/lib/supabase'
 import { previewInvite, type InvitePreview } from '@/data/householdRepo'
 import { useTroopStore } from '@/stores/troop'
@@ -16,8 +17,6 @@ const house = useHouseholdStore()
 
 const preview = ref<InvitePreview | null>(null)
 const checked = ref(false)
-const email = ref('')
-const linkSent = ref(false)
 const joining = ref(false)
 
 const signedIn = computed(() => troop.mode === 'supabase')
@@ -47,11 +46,6 @@ onMounted(async () => {
 
 // Once you're signed in the link doesn't need remembering any more.
 watch(signedIn, (yes) => yes && preview.value?.usable === false && remember(null))
-
-async function sendLink() {
-  if (!email.value.trim()) return
-  linkSent.value = await troop.signIn(email.value.trim())
-}
 
 async function join() {
   joining.value = true
@@ -93,13 +87,8 @@ function notNow() {
         </p>
 
         <template v-if="!signedIn">
-          <p><strong>Sign in first</strong>, then come back to this link (we'll remember it).</p>
-          <form v-if="!linkSent" class="signin" @submit.prevent="sendLink">
-            <label for="join-email" class="sr-only">Email</label>
-            <input id="join-email" v-model="email" type="email" class="input" autocomplete="email" placeholder="you@example.com" required />
-            <button type="submit" class="btn btn-primary">Email me a sign-in link</button>
-          </form>
-          <p v-else class="note" role="status">Check your email and open the sign-in link on this phone. You'll come straight back here.</p>
+          <p><strong>Sign in first.</strong> We'll email you a code to type in here.</p>
+          <SignInForm label="Your email" />
         </template>
 
         <template v-else>
