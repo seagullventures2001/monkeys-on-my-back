@@ -1,11 +1,27 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTroopStore } from '@/stores/troop'
 import { PENDING_INVITE_KEY } from '@/stores/household'
 
 const store = useTroopStore()
-onMounted(() => store.init())
+
+// A sign-in link that failed (expired, already used, or opened in another browser) comes
+// back with the error in the address. Tidy it away and point people to the code instead.
+const linkProblem = ref(false)
+function checkForLinkError() {
+  const hash = new URLSearchParams(window.location.hash.slice(1))
+  const query = new URLSearchParams(window.location.search)
+  if (hash.get('error') || hash.get('error_code') || query.get('error_code')) {
+    linkProblem.value = true
+    history.replaceState(null, '', window.location.pathname)
+  }
+}
+
+onMounted(() => {
+  checkForLinkError()
+  store.init()
+})
 
 // Opened an invite link, then signed in from the email: take them back to the invite.
 const router = useRouter()
@@ -33,6 +49,11 @@ const tabs = [
 </script>
 
 <template>
+  <div v-if="linkProblem && store.mode !== 'supabase'" class="link-problem" role="alert">
+    <span>That sign-in link didn't work here. Use the <strong>code</strong> from the email instead, in Settings.</span>
+    <RouterLink to="/settings" class="btn-link" @click="linkProblem = false">Settings</RouterLink>
+    <button type="button" class="dismiss" aria-label="Dismiss" @click="linkProblem = false">×</button>
+  </div>
   <RouterView />
   <nav class="tabs" aria-label="Main">
     <RouterLink
@@ -66,6 +87,42 @@ const tabs = [
 </template>
 
 <style scoped>
+.link-problem {
+  position: fixed;
+  z-index: 60;
+  top: calc(8px + var(--safe-top));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(500px, calc(100% - 24px));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--banana);
+  color: var(--leaf-900);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  box-shadow: 0 6px 18px rgba(30, 58, 43, 0.22);
+}
+
+.link-problem span {
+  flex: 1;
+}
+
+.dismiss {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .tabs {
   position: fixed;
   left: 50%;

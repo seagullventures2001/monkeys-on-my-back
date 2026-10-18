@@ -30,8 +30,8 @@ Open the URL Vite prints (usually http://localhost:5173). It starts in **on-devi
 
 ## Versions
 
-The bottom of Settings shows something like **version 0.11.0 (2257a31)**:
-- `0.11.0` is `version` in `package.json`, bumped with each release.
+The bottom of Settings shows something like **version 0.11.1 (2257a31)**:
+- `0.11.1` is `version` in `package.json`, bumped with each release.
 - `2257a31` is the git commit the build was made from (on Vercel it's the commit that was deployed), so you can find the exact code with `git show 2257a31`.
 
 ## Project layout
@@ -71,7 +71,8 @@ All three pass in this version (`test:db` now also checks who can see and change
 2. In the SQL editor, run each file in `supabase/migrations/` in date order (oldest first) (or use the Supabase CLI: `supabase db push`).
 3. **Authentication → URL configuration**: add `http://localhost:5173` to the redirect URLs.
 4. Copy `.env.example` to `.env.local` and fill in the project URL and anon key (Project settings → API).
-5. Restart `npm run dev`. Settings now shows "Email me a sign-in link".
+5. **Authentication → Emails → Templates**: in both **Magic Link** and **Confirm signup**, add the code to the email, e.g. `<p>Your code: <strong>{{ .Token }}</strong></p>`. People sign in by typing that code, which works inside the home-screen app (tapping a link opens a different browser that the installed app can't see).
+6. Restart `npm run dev`. Settings now shows "Email me a sign-in code".
 
 ### How the data and security work
 

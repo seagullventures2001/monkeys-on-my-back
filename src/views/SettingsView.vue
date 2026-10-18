@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useTroopStore } from '@/stores/troop'
 import { useAvatarStore } from '@/stores/avatar'
 import AvatarFigure from '@/components/AvatarFigure.vue'
+import SignInForm from '@/components/SignInForm.vue'
 import { supabaseConfigured } from '@/lib/supabase'
 import { localRepo } from '@/data/localRepo'
 import { notificationsSupported, requestNotificationPermission, scheduleReminders } from '@/lib/notifications'
@@ -15,8 +16,6 @@ const me = useAvatarStore()
 // e.g. "0.8.0 (2257a31)": the app version plus the git commit it was built from.
 const version = `${__APP_VERSION__} (${__APP_COMMIT__})`
 
-const email = ref('')
-const linkSent = ref(false)
 const copyMsg = ref('')
 const hasDemo = ref(localRepo.hasDemo())
 const notifMsg = ref('')
@@ -28,11 +27,6 @@ function toggleSounds() {
     unlockAudio()
     playOne('ding')
   }
-}
-
-async function sendLink() {
-  if (!email.value.trim()) return
-  linkSent.value = await store.signIn(email.value.trim())
 }
 
 async function copyLocal() {
@@ -94,14 +88,7 @@ async function saveReminders() {
       <template v-else>
         <p>Saved on this device only.</p>
 
-        <form v-if="supabaseConfigured && !linkSent" class="signin" @submit.prevent="sendLink">
-          <div class="field">
-            <label for="email">Sign in to sync across devices</label>
-            <input id="email" v-model="email" type="email" class="input" autocomplete="email" placeholder="you@example.com" required />
-          </div>
-          <button type="submit" class="btn btn-primary">Email me a sign-in link</button>
-        </form>
-        <p v-else-if="linkSent" class="muted" role="status">Check your email for the sign-in link.</p>
+        <SignInForm v-if="supabaseConfigured" />
         <p v-else class="muted small">
           Accounts are switched off in this build. Add your Supabase keys to <code>.env.local</code> to turn them on
           (see the README).

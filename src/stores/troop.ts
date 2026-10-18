@@ -9,6 +9,12 @@ import { createSupabaseRepo, fetchPersonalTroopId } from '@/data/supabaseRepo'
 import type { EditableFields, MonkeyRepo } from '@/data/repo'
 import { scheduleReminders } from '@/lib/notifications'
 
+function friendlyAuthError(message: string): string {
+  if (/expired|invalid/i.test(message)) return 'That code has expired or is wrong. Send a new one and try again.'
+  if (/rate limit|too many/i.test(message)) return 'Too many tries. Wait a minute, then send a new code.'
+  return message
+}
+
 export const useTroopStore = defineStore('troop', () => {
   const monkeys = ref<Monkey[]>([])
   const repo = shallowRef<MonkeyRepo>(localRepo)
@@ -116,7 +122,19 @@ export const useTroopStore = defineStore('troop', () => {
         email: address,
         options: { emailRedirectTo: window.location.origin },
       })
-      if (e) throw new Error(e.message)
+      if (e) throw new Error(friendlyAuthError(e.message))
+      return true
+    })
+    return ok === true
+  }
+
+  /** Finishes sign-in with the code from the email (works inside the home-screen app). */
+  async function verifyCode(address: string, token: string) {
+    if (!supabase) return false
+    const ok = await run(async () => {
+      const { data, error: e } = await supabase!.auth.verifyOtp({ email: address, token, type: 'email' })
+      if (e) throw new Error(friendlyAuthError(e.message))
+      await useSession(data.session)
       return true
     })
     return ok === true
@@ -163,6 +181,7 @@ export const useTroopStore = defineStore('troop', () => {
     update,
     remove,
     signIn,
+    verifyCode,
     signOut,
     copyLocalToAccount,
   }
