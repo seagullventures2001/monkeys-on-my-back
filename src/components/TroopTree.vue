@@ -41,6 +41,9 @@ const layout = computed(() =>
       <path d="M0 376 H358" stroke="var(--leaf-400)" stroke-width="8" />
     </svg>
 
+    <!-- Anything standing in front of the tree but behind the monkeys (your avatar). -->
+    <slot name="behind" />
+
     <TransitionGroup name="monkey">
       <button
         v-for="p in layout"

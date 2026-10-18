@@ -8,6 +8,7 @@ export const router = createRouter({
     { path: '/troop', component: () => import('@/views/TroopView.vue') },
     { path: '/household', component: () => import('@/views/HouseholdView.vue') },
     { path: '/settings', component: () => import('@/views/SettingsView.vue') },
+    { path: '/avatar', component: () => import('@/views/AvatarView.vue') },
     // The old "Fed" screen is now the list inside Troop.
     { path: '/fed', redirect: { path: '/troop', query: { view: 'list' } } },
     { path: '/:pathMatch(.*)*', redirect: '/' },
