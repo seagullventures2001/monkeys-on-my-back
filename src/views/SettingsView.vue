@@ -220,8 +220,10 @@ async function saveReminders() {
       <details>
         <summary>Household (the right tab)</summary>
         <p>
-          Coming soon as part of Pro: share trees with a partner or family, hand jobs to each other, and a family mode
-          where kids feed the monkeys and a parent approves.
+          Share with the people you live with. Everyone keeps their own tree and can see each other's. Add your name,
+          tap <strong>Make an invite link</strong> and send it; when they open it and sign in, they join. To give
+          someone a job, open the monkey on your tree and tap <strong>Hand to …</strong>. It's a Pro feature, free
+          while we test.
         </p>
       </details>
 

@@ -21,7 +21,7 @@ Open the URL Vite prints (usually http://localhost:5173). It starts in **on-devi
 - **Monkey details** slide up from the bottom when you tap a monkey, so they're visible on any phone size.
 - **Feeding celebration**: full-screen moment with a tune: the monkey catches, peels and munches a banana while streamers go off.
 - **Troop** (left tab): every fed monkey lives in a playground of trees, eating, waving, napping, swinging, strolling and bouncing. Tap one to see its job. A **List** view shows them all with "put back" and delete. Every visit starts with a safari-bus ride (about 4.5 seconds, tap to skip) and a fun fact.
-- **Household** (right tab, Pro): a coming-soon page for sharing trees with a partner or family.
+- **Household** (right tab, Pro, unlocked while testing): invite people you live with by a single-use link (`/join/<token>`, lasts 7 days, up to 6 people). Everyone keeps their own tree with their avatar beside it; swipe between trees, tap a monkey to see the job. Hand a monkey to someone from its details on your tree. Members can see but not change each other's monkeys. The paywall is one switch: `PRO_FOR_EVERYONE` / `hasPro()` in `src/lib/pro.ts`; when it's off, the old coming-soon page shows instead.
 - **Settings** (gear on the tree screen): sign in to sync (once Supabase is set up), copy device monkeys to your account, sounds on/off, and **morning reminders** (Off / Weekends / Every day, a time, and a reminder on due dates; default weekends at 8am).
 
 ### Reminders: what works where
@@ -30,8 +30,8 @@ Open the URL Vite prints (usually http://localhost:5173). It starts in **on-devi
 
 ## Versions
 
-The bottom of Settings shows something like **version 0.10.2 (2257a31)**:
-- `0.10.2` is `version` in `package.json`, bumped with each release.
+The bottom of Settings shows something like **version 0.11.0 (2257a31)**:
+- `0.11.0` is `version` in `package.json`, bumped with each release.
 - `2257a31` is the git commit the build was made from (on Vercel it's the commit that was deployed), so you can find the exact code with `git show 2257a31`.
 
 ## Project layout
@@ -122,7 +122,8 @@ The data the widget needs already exists: `store.onBack.length`, `store.onBack[0
 
 ## Known gaps / ideas for next
 
-- Household sharing UI (invite by email). The database already supports it.
+- Family mode: kids' trees with parent approval.
+- Real-time updates when someone hands you a monkey (for now it shows next time the app loads).
 - Seasonal or "before an event" reminders ("clean the BBQ before summer").
 - Real-time sync between devices (Supabase Realtime on the `monkeys` table).
 - Dark mode.
