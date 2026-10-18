@@ -1,9 +1,28 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useTroopStore } from '@/stores/troop'
+import { PENDING_INVITE_KEY } from '@/stores/household'
 
 const store = useTroopStore()
 onMounted(() => store.init())
+
+// Opened an invite link, then signed in from the email: take them back to the invite.
+const router = useRouter()
+const route = useRoute()
+watch(
+  () => store.userId,
+  (id) => {
+    if (!id) return
+    let token: string | null = null
+    try {
+      token = localStorage.getItem(PENDING_INVITE_KEY)
+    } catch {
+      token = null
+    }
+    if (token && !route.path.startsWith('/join/')) void router.push(`/join/${token}`)
+  },
+)
 
 // Tree is the home screen, so it sits in the middle and stands out.
 const tabs = [

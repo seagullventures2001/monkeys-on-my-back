@@ -5,9 +5,15 @@ import { EFFORTS, effortShort, formatAge, type Effort, type Monkey } from '@/lib
 import { daysUntil, dueLabel } from '@/lib/due'
 import DueDateField from './DueDateField.vue'
 
-const props = defineProps<{ monkey: Monkey }>()
+// handTo: other people in your household (if any), so the job can be handed to them.
+// fromName: who handed this monkey to you, if someone did.
+const props = withDefaults(
+  defineProps<{ monkey: Monkey; handTo?: { userId: string; name: string }[]; fromName?: string | null }>(),
+  { handTo: () => [], fromName: null },
+)
 const emit = defineEmits<{
   feed: [id: string]
+  handOver: [id: string, toUser: string, name: string]
   save: [id: string, patch: { title: string; effort: Effort; notes: string | null; dueOn: string | null }]
   remove: [id: string]
   close: []
@@ -54,6 +60,12 @@ function save() {
   editing.value = false
 }
 
+function confirmHandOver(to: { userId: string; name: string }) {
+  if (window.confirm(`Hand “${props.monkey.title}” to ${to.name}? It moves onto their tree.`)) {
+    emit('handOver', props.monkey.id, to.userId, to.name)
+  }
+}
+
 function confirmRemove() {
   if (window.confirm(`Remove “${props.monkey.title}” without feeding it? It will not count as done.`)) {
     emit('remove', props.monkey.id)
@@ -68,6 +80,7 @@ function confirmRemove() {
         <h2>{{ monkey.title }}</h2>
         <p v-if="due" class="due-pill" :class="{ late: due.late }">{{ due.label }}</p>
         <p class="meta">{{ ageLine }} · {{ effortShort(monkey.effort) }}</p>
+        <p v-if="fromName" class="from">Handed to you by {{ fromName }}</p>
         <p v-if="monkey.notes" class="notes">{{ monkey.notes }}</p>
       </div>
       <div class="actions">
@@ -76,6 +89,12 @@ function confirmRemove() {
           Feed a banana
         </button>
         <button type="button" class="btn btn-ghost" @click="startEdit">Edit</button>
+      </div>
+      <div v-if="handTo.length" class="hand">
+        <span class="hand-label">Not your job?</span>
+        <button v-for="p in handTo" :key="p.userId" type="button" class="btn btn-ghost hand-btn" @click="confirmHandOver(p)">
+          Hand to {{ p.name }}
+        </button>
       </div>
     </template>
 
@@ -161,6 +180,35 @@ h2 {
 
 .edit .actions .btn {
   flex: 1;
+}
+
+.from {
+  display: inline-block;
+  margin: 8px 0 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--banana);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.hand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--leaf-200);
+}
+
+.hand-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+.hand-btn {
+  min-height: 40px;
 }
 
 .danger {

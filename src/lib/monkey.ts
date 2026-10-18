@@ -14,6 +14,7 @@ export interface Monkey {
   createdAt: string // ISO timestamp
   fedAt: string | null // ISO timestamp when the job was done, null while still on your back
   dueOn: string | null // optional calendar day ("2026-10-24"); most monkeys have none
+  handedBy?: string | null // household: the person who handed this monkey to you
 }
 
 export interface NewMonkey {
