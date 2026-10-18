@@ -33,7 +33,9 @@ const layout = computed(() =>
       <circle cx="70" cy="210" r="56" fill="var(--leaf-200)" />
       <circle cx="290" cy="200" r="58" fill="var(--leaf-200)" />
       <path d="M160 380 C166 300 168 220 172 120 L188 120 C192 220 196 300 202 380 Z" fill="var(--bark)" />
-      <path d="M176 252 C140 248 90 254 36 250" fill="none" stroke="var(--bark)" stroke-width="12" stroke-linecap="round" />
+      <!-- lower left: two short branches, one monkey each, so nobody sits in front of you -->
+      <path d="M176 252 C152 250 124 252 96 250" fill="none" stroke="var(--bark)" stroke-width="12" stroke-linecap="round" />
+      <path d="M176 344 C152 342 124 344 96 342" fill="none" stroke="var(--bark)" stroke-width="12" stroke-linecap="round" />
       <path d="M182 202 C220 200 280 204 334 200" fill="none" stroke="var(--bark)" stroke-width="11" stroke-linecap="round" />
       <path d="M176 142 C150 140 110 142 66 140" fill="none" stroke="var(--bark)" stroke-width="10" stroke-linecap="round" />
       <path d="M184 112 C220 110 260 112 300 110" fill="none" stroke="var(--bark)" stroke-width="9" stroke-linecap="round" />

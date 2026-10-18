@@ -7,14 +7,14 @@ export const TREE_H = 380
 /** Seats on the branches, best (top of the tree) first. cx = centre, y = where the monkey's bottom sits. */
 const SEATS: { cx: number; y: number }[] = [
   { cx: 240, y: 110 },
-  // Kept in from the edge so your avatar's face (left of the tree) stays clear.
-  { cx: 150, y: 140 },
+  // The left-hand seats stay close to the trunk so your avatar (left of the tree) is never covered.
+  { cx: 160, y: 140 },
   { cx: 296, y: 200 },
-  { cx: 72, y: 250 },
+  { cx: 136, y: 250 },
   { cx: 214, y: 200 },
-  { cx: 140, y: 250 },
   { cx: 288, y: 300 },
   { cx: 235, y: 300 },
+  { cx: 136, y: 342 },
 ]
 
 /** Monkeys are drawn as a 100 x 130 figure (head + small body) and sit at y = 116 of it. */

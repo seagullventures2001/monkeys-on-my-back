@@ -81,18 +81,23 @@ function measureMe() {
   const treeW = wrap.offsetWidth
   const navH = document.querySelector('.tabs')?.getBoundingClientRect().height ?? 80
   const room = vh - treeTop - navH - 6
-  const h = Math.round(Math.min(Math.max(room, treeH * 0.7), vh * 0.7))
+  // You stand at the left edge, head as far left as it goes without being cut off.
+  // Height is capped so your waving hand and body stay left of every monkey's seat
+  // (seats on the left side sit from about 30% of the tree's width).
+  const h = Math.round(Math.min(Math.max(room, treeH * 0.7), treeW * 1.08, vh * 0.62))
   const w = h * AVATAR_RATIO
-  // Head centred over the left edge of the tree, a little of you past the screen edge is fine.
-  // ...but never so far that your head is cut off.
-  const left = Math.round(Math.max(treeW * 0.15 - w / 2, -w * 0.2 - 8))
+  const left = Math.round(-w * 0.2 - 8)
+  // Feet just in front of the tree's base, like you're standing a step closer to the camera.
+  const drop = Math.round(treeH * 0.05)
+  const top = Math.max(0, treeH + drop - h)
+  const bottom = top + h - treeH
   meVars.value = {
     '--me-h': `${h}px`,
     '--me-w': `${Math.round(w)}px`,
     '--me-left': `${left}px`,
-    '--me-drop': `${Math.max(0, h - treeH)}px`,
+    '--me-top': `${top}px`,
     // Keep the panel's text clear of your legs.
-    '--me-pad': `${Math.max(20, Math.round(20 + left + w * 0.76 + 8))}px`,
+    '--me-pad': bottom > 40 ? `${Math.round(20 + left + w * 0.76 + 8)}px` : '20px',
   }
 }
 let pageResize: ResizeObserver | undefined
@@ -321,12 +326,12 @@ onBeforeUnmount(() => {
               </svg>
             </RouterLink>
             <div v-if="showTip" class="tip" role="status">
-              <svg class="tip-arrow" width="44" height="40" viewBox="0 0 44 40" aria-hidden="true">
-                <path d="M38 36 C38 18 26 8 8 6" fill="none" stroke="var(--leaf-900)" stroke-width="3" stroke-linecap="round" />
-                <path d="M15 1 L6 6 L14 12" fill="none" stroke="var(--leaf-900)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+              <svg class="tip-arrow" width="40" height="28" viewBox="0 0 40 28" aria-hidden="true">
+                <path d="M38 22 C26 24 16 18 6 8" fill="none" stroke="var(--leaf-900)" stroke-width="3" stroke-linecap="round" />
+                <path d="M5 17 L5 7 L15 6" fill="none" stroke="var(--leaf-900)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
               <strong>This is you!</strong>
-              <span>Tap the pencil to change your hair and clothes.</span>
+              <span>Tap the pencil above your head to change your hair and clothes.</span>
               <button type="button" class="btn-link tip-ok" @click="closeTip">Got it</button>
             </div>
           </div>
@@ -637,7 +642,7 @@ onBeforeUnmount(() => {
 
 .me {
   position: absolute;
-  top: 0;
+  top: var(--me-top, 0px);
   left: var(--me-left, -40px);
   width: var(--me-w, 180px);
   height: var(--me-h, 450px);
@@ -647,8 +652,8 @@ onBeforeUnmount(() => {
 .edit-me {
   position: absolute;
   z-index: 3;
-  left: max(16%, calc(20px - var(--me-left, 0px)));
-  top: 1%;
+  left: max(32%, calc(20px - var(--me-left, 0px)));
+  top: -2%;
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -671,8 +676,9 @@ onBeforeUnmount(() => {
 .tip {
   position: absolute;
   z-index: 4;
-  left: calc(max(16%, calc(20px - var(--me-left, 0px))) + 30px);
-  top: calc(1% + 52px);
+  /* Just right of your face, with the arrow pointing back at it. */
+  left: calc(80% + 30px);
+  top: 13%;
   width: 190px;
   padding: 10px 12px;
   border-radius: var(--radius-md);
@@ -696,8 +702,8 @@ onBeforeUnmount(() => {
 
 .tip-arrow {
   position: absolute;
-  left: -36px;
-  top: -30px;
+  left: -38px;
+  top: 6px;
 }
 
 .tip-ok {
