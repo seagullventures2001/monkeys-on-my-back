@@ -15,12 +15,23 @@ import WelcomeDialog from '@/components/WelcomeDialog.vue'
 import AvatarFigure from '@/components/AvatarFigure.vue'
 import AvatarSetupDialog from '@/components/AvatarSetupDialog.vue'
 import { useAvatarStore } from '@/stores/avatar'
+import { useHouseholdStore } from '@/stores/household'
+import { hasPro } from '@/lib/pro'
 import { defaultAvatar, type Body } from '@/lib/avatar'
 import { unlockAudio } from '@/lib/sound'
 import type { Monkey } from '@/lib/monkey'
 
 const store = useTroopStore()
 const me = useAvatarStore()
+const house = useHouseholdStore()
+// Household: who you can hand a monkey to, and who handed one to you.
+const handTo = computed(() =>
+  hasPro() ? house.others.map((m) => ({ userId: m.userId, name: m.name?.trim() || 'them' })) : [],
+)
+async function handOver(id: string, toUser: string, name: string) {
+  selectedId.value = null
+  if (await house.handOver(id, toUser)) showNote(`Handed to ${name}.`)
+}
 const selectedId = ref<string | null>(null)
 const adding = ref(false)
 const toast = ref<{ id: string; title: string } | null>(null)
@@ -234,6 +245,15 @@ function finishCelebration() {
   }, 450)
 }
 
+// A short message with no undo (e.g. after handing a monkey over).
+const note = ref<string | null>(null)
+let noteTimer: ReturnType<typeof setTimeout> | undefined
+function showNote(text: string) {
+  note.value = text
+  clearTimeout(noteTimer)
+  noteTimer = setTimeout(() => (note.value = null), 5000)
+}
+
 function showToast(id: string, title: string) {
   toast.value = { id, title }
   clearTimeout(toastTimer)
@@ -272,6 +292,7 @@ watch(
 
 onBeforeUnmount(() => {
   clearTimeout(toastTimer)
+  clearTimeout(noteTimer)
   sheetResize?.disconnect()
   window.removeEventListener('keydown', onKey)
   document.removeEventListener('pointerdown', onPointerDown)
@@ -374,6 +395,12 @@ onBeforeUnmount(() => {
       </div>
       <p v-else class="hint muted">Tap a monkey to see its job.</p>
 
+      <p v-if="house.error" class="error" role="alert">{{ house.error }}</p>
+      <Transition name="toast">
+        <div v-if="note" class="toast" role="status">
+          <span>{{ note }}</span>
+        </div>
+      </Transition>
       <Transition name="toast">
         <div v-if="toast" class="toast" role="status">
           <span>“{{ toast.title }}” jumped off your back.</span>
@@ -396,7 +423,12 @@ onBeforeUnmount(() => {
             <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
           </svg>
         </button>
-        <MonkeySheet :monkey="selected" @feed="feed" @save="save" @remove="remove" @close="selectedId = null" />
+        <MonkeySheet
+          :monkey="selected"
+          :hand-to="handTo"
+          :from-name="selected.handedBy ? house.nameOf(selected.handedBy) : null"
+          @hand-over="handOver"
+          @feed="feed" @save="save" @remove="remove" @close="selectedId = null" />
       </section>
     </Transition>
 

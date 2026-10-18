@@ -109,5 +109,63 @@ check('A cannot remove B from B\'s troop', ownerLeave.rows.length === 0)
 const delPersonal = await as(A, `delete from public.troops where id = '${troopA}' returning id`)
 check('personal troop cannot be deleted', delPersonal.rows.length === 0)
 
+// ---------------------------------------------------------------------------
+// Household
+// ---------------------------------------------------------------------------
+const C = '33333333-3333-3333-3333-333333333333'
+await db.exec(`insert into auth.users (id, email) values ('${C}', 'c@x.test');`)
+const troopC = (await as(C, 'select id from public.troops')).rows[0].id
+const one = async (user, sql) => (await as(user, sql)).rows[0]
+
+check('anon cannot make an invite', await fails(null, 'select public.create_household_invite()'))
+const tok1 = (await one(A, 'select public.create_household_invite() as t')).t
+check('A can make an invite link', typeof tok1 === 'string' && tok1.length >= 32)
+check('A is now a household owner', (await one(A, `select role from public.household_members where user_id = '${A}'`))?.role === 'owner')
+check('nobody can read invites directly', (await as(A, 'select * from public.household_invites')).rows.length === 0)
+const hA = (await db.query(`select household_id from public.household_members where user_id = '${A}'`)).rows[0].household_id
+check('nobody can add themselves to a household directly', await fails(B, `insert into public.household_members (household_id, user_id) values ('${hA}', '${B}')`))
+check('nobody can make themselves owner directly', (await as(A, `update public.household_members set role = 'owner' returning user_id`)).rows.length === 0)
+const preview = await one(null, `select * from public.household_invite_preview('${tok1}')`)
+check('the join page can preview a valid invite before sign-in', preview?.usable === true && preview?.member_count === 1)
+check('a wrong token previews nothing', (await as(null, `select * from public.household_invite_preview('${'x'.repeat(64)}')`)).rows.length === 0)
+
+check('before joining, B cannot see A\'s tree', (await as(B, `select * from public.monkeys where troop_id = '${troopA}'`)).rows.length === 0)
+check('B can accept the invite', (await as(B, `select public.accept_household_invite('${tok1}')`)).rows.length === 1)
+check('the invite only works once', await fails(C, `select public.accept_household_invite('${tok1}')`))
+check('after joining, B sees A\'s monkeys', (await as(B, `select * from public.monkeys where troop_id = '${troopA}'`)).rows.length >= 1)
+check('after joining, A sees B\'s tree', (await as(A, `select * from public.troops where id = '${troopB}'`)).rows.length === 1)
+check('household members see each other\'s profile', (await as(B, `select * from public.profiles where id = '${A}'`)).rows.length === 1)
+check('both are listed as members', (await as(B, 'select * from public.household_members')).rows.length === 2)
+check('C (outside) sees nothing of the household', (await as(C, `select * from public.monkeys where troop_id = '${troopA}'`)).rows.length === 0 && (await as(C, 'select * from public.household_members')).rows.length === 0)
+
+const bEdit = await as(B, `update public.monkeys set title = 'hacked' where troop_id = '${troopA}' returning id`)
+check('B cannot change A\'s monkeys', bEdit.rows.length === 0)
+const bFeed = await as(B, `update public.monkeys set fed_at = now() where troop_id = '${troopA}' returning id`)
+check('B cannot feed A\'s monkeys', bFeed.rows.length === 0)
+check('B cannot delete A\'s monkeys', (await as(B, `delete from public.monkeys where troop_id = '${troopA}' returning id`)).rows.length === 0)
+check('nobody can move a monkey by editing it directly', await fails(A, `update public.monkeys set troop_id = '${troopB}' where id = '${monkeyA}'`) || (await as(A, `select troop_id from public.monkeys where id = '${monkeyA}'`)).rows[0].troop_id === troopA)
+check('nobody can fake handed_by on a new monkey', (await one(A, `insert into public.monkeys (troop_id, title, handed_by) values ('${troopA}', 'Fake', '${B}') returning handed_by`)).handed_by === null)
+
+const give = (await one(A, `insert into public.monkeys (troop_id, title) values ('${troopA}', 'Clean gutters') returning id`)).id
+check('A cannot hand a monkey to C (not in the household)', await fails(A, `select public.hand_over_monkey('${give}', '${C}')`))
+check('B cannot hand over A\'s monkey', await fails(B, `select public.hand_over_monkey('${give}', '${B}')`))
+await as(A, `select public.hand_over_monkey('${give}', '${B}')`)
+const moved = await one(B, `select troop_id, handed_by, created_by from public.monkeys where id = '${give}'`)
+check('A can hand a monkey to B; it lands on B\'s tree', moved?.troop_id === troopB)
+check('it records who handed it over', moved?.handed_by === A)
+check('B can now feed the handed-over monkey', (await as(B, `update public.monkeys set fed_at = now() where id = '${give}' returning id`)).rows.length === 1)
+check('fed monkeys cannot be handed over', await fails(B, `select public.hand_over_monkey('${give}', '${A}')`))
+
+check('only the owner can remove people', await fails(B, `select public.remove_household_member('${A}')`))
+const tok2 = (await one(A, 'select public.create_household_invite() as t')).t
+await db.exec(`update public.household_invites set expires_at = now() - interval '1 minute' where token = '${tok2}'`)
+check('expired invites do not work', await fails(C, `select public.accept_household_invite('${tok2}')`))
+
+await as(B, 'select public.leave_household()')
+check('after leaving, B cannot see A\'s tree', (await as(B, `select * from public.monkeys where troop_id = '${troopA}'`)).rows.length === 0)
+check('after leaving, A cannot see B\'s tree', (await as(A, `select * from public.monkeys where troop_id = '${troopB}'`)).rows.length === 0)
+await as(A, 'select public.leave_household()')
+check('the last person leaving removes the household', (await db.query('select * from public.households')).rows.length === 0)
+
 console.log(failures === 0 ? '\nAll checks passed' : `\n${failures} check(s) failed`)
 process.exit(failures === 0 ? 0 : 1)

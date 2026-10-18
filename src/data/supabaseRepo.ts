@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Effort, Monkey, NewMonkey } from '@/lib/monkey'
 import type { EditableFields, MonkeyRepo } from './repo'
 
-interface MonkeyRow {
+export interface MonkeyRow {
   id: string
   troop_id: string
   title: string
@@ -11,11 +11,12 @@ interface MonkeyRow {
   created_at: string
   fed_at: string | null
   due_on: string | null
+  handed_by?: string | null
 }
 
-const COLUMNS = 'id, troop_id, title, notes, effort, created_at, fed_at, due_on'
+export const COLUMNS = 'id, troop_id, title, notes, effort, created_at, fed_at, due_on, handed_by'
 
-function toMonkey(row: MonkeyRow): Monkey {
+export function toMonkey(row: MonkeyRow): Monkey {
   return {
     id: row.id,
     troopId: row.troop_id,
@@ -25,6 +26,7 @@ function toMonkey(row: MonkeyRow): Monkey {
     createdAt: row.created_at,
     fedAt: row.fed_at,
     dueOn: row.due_on,
+    handedBy: row.handed_by ?? null,
   }
 }
 
