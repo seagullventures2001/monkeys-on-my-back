@@ -30,8 +30,8 @@ Open the URL Vite prints (usually http://localhost:5173). It starts in **on-devi
 
 ## Versions
 
-The bottom of Settings shows something like **version 0.10.0 (2257a31)**:
-- `0.10.0` is `version` in `package.json`, bumped with each release.
+The bottom of Settings shows something like **version 0.10.1 (2257a31)**:
+- `0.10.1` is `version` in `package.json`, bumped with each release.
 - `2257a31` is the git commit the build was made from (on Vercel it's the commit that was deployed), so you can find the exact code with `git show 2257a31`.
 
 ## Project layout

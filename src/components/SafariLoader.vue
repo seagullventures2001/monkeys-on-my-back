@@ -86,7 +86,11 @@ const roadside = [
         <rect x="80" y="48" width="44" height="26" rx="6" fill="#d8eef6" />
         <rect x="136" y="48" width="40" height="26" rx="6" fill="#d8eef6" />
         <!-- monkey passenger leaning out of the middle window -->
-        <svg x="84" y="30" width="36" height="36" viewBox="0 0 100 100" overflow="visible">
+        <!-- neck and shoulders, so the head is joined on rather than floating -->
+        <rect x="97" y="50" width="10" height="12" rx="3" fill="var(--fur)" />
+        <ellipse cx="102" cy="64" rx="15" ry="7" fill="var(--fur)" />
+        <ellipse cx="102" cy="63" rx="6" ry="4" fill="var(--face)" />
+        <svg x="85" y="22" width="34" height="34" viewBox="0 0 100 100" overflow="visible">
           <MonkeyFace :mood="0" />
         </svg>
         <rect x="80" y="64" width="44" height="10" rx="3" fill="#e0b45c" />
