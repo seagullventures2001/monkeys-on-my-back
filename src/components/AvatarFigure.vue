@@ -91,6 +91,12 @@ const RIGHT_SLEEVE_SHORT = 'M85 106 Q92 102 96 94'
       <path d="M99 60 L97 54 M104 59 V52 M109 61 L111 55" :stroke="c.skin" stroke-width="4" stroke-linecap="round" />
 
       <!-- body -->
+      <!-- bare shoulders and chest under a singlet, so the neck joins the body with no gap -->
+      <path
+        v-if="avatar.top === 'singlet'"
+        d="M38 99 Q60 93 82 99 Q90 103 90 116 L30 116 Q30 103 38 99 Z"
+        :fill="c.skin"
+      />
       <path
         v-if="avatar.top === 'singlet'"
         d="M40 100 L46 100 Q60 112 74 100 L80 100 Q86 104 86 118 L88 176 Q60 182 32 176 L34 118 Q34 104 40 100 Z"
@@ -102,12 +108,11 @@ const RIGHT_SLEEVE_SHORT = 'M85 106 Q92 102 96 94'
         :fill="c.top"
       />
       <path v-else d="M40 96 Q60 92 80 96 Q91 100 91 114 L88 176 Q60 182 32 176 L29 114 Q29 100 40 96 Z" :fill="c.top" />
-      <path v-if="avatar.top === 'singlet'" d="M34 104 Q30 104 30 112 M86 104 Q90 104 90 112" :stroke="c.skin" stroke-width="5" fill="none" stroke-linecap="round" />
       <path d="M33 168 Q60 174 87 168" fill="none" :stroke="c.topShade" stroke-width="3" />
     </template>
 
     <!-- neck -->
-    <rect x="52" y="82" width="16" height="18" rx="5" :fill="c.skinShade" />
+    <rect x="52" y="82" width="16" height="24" rx="5" :fill="c.skinShade" />
     <path v-if="part === 'full' && avatar.top !== 'singlet'" d="M48 96 Q60 106 72 96" fill="none" :stroke="c.topShade" stroke-width="4" stroke-linecap="round" />
 
     <!-- head -->
