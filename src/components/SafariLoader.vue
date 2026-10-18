@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import MonkeyFace from './MonkeyFace.vue'
+import AvatarFigure from './AvatarFigure.vue'
 import { randomFact } from '@/lib/facts'
+import { useAvatarStore } from '@/stores/avatar'
 
 // A little safari bus (with a monkey passenger) driving to the troop,
 // plus a fun fact to read on the way. Tap anywhere to skip.
 const emit = defineEmits<{ skip: [] }>()
 const fact = randomFact()
+// You're driving (the front window), with a monkey along for the ride.
+const me = useAvatarStore()
 
 // Bushes and trees along the roadside, drawn twice so the strip can loop seamlessly.
 const roadside = [
@@ -86,6 +90,14 @@ const roadside = [
           <MonkeyFace :mood="0" />
         </svg>
         <rect x="80" y="64" width="44" height="10" rx="3" fill="#e0b45c" />
+        <!-- you, at the wheel in the front window -->
+        <template v-if="me.avatar">
+          <svg x="138" y="27" width="38" height="42" viewBox="18 4 84 92" overflow="hidden">
+            <AvatarFigure :avatar="me.avatar" part="head" />
+          </svg>
+          <rect x="136" y="64" width="40" height="10" rx="3" fill="#e0b45c" />
+          <path d="M160 70 a7 4 0 0 1 14 0" fill="none" stroke="#3a2a1e" stroke-width="3" stroke-linecap="round" />
+        </template>
         <!-- headlight -->
         <circle cx="200" cy="62" r="5" fill="#fff6c8" stroke="#d19f45" stroke-width="2" />
         <!-- wheels -->
@@ -103,7 +115,7 @@ const roadside = [
     </div>
 
     <div class="words">
-      <p class="heading">Heading to the troop…</p>
+      <p class="heading">{{ me.avatar ? 'Driving to the troop…' : 'Heading to the troop…' }}</p>
       <p class="label">Did you know?</p>
       <p class="fact">{{ fact }}</p>
       <p class="skip muted">Tap to skip</p>

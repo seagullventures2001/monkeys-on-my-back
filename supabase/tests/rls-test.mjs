@@ -84,13 +84,25 @@ check('feeding records the real feeder, not the value sent', fed.rows[0]?.fed_by
 
 check('monkeys cannot move troops', await fails(A, `update public.monkeys set troop_id = '${troopB}' where id = '${monkeyA}'`))
 
+// Avatars on profiles
+const av = `'{"body":"female","hair":"bob"}'::jsonb`
+check('A can save an avatar', (await as(A, `update public.profiles set avatar = ${av} where id = '${A}' returning id`)).rows.length === 1)
+check('A can read own avatar', (await as(A, `select avatar from public.profiles where id = '${A}'`)).rows[0]?.avatar?.body === 'female')
+check('B cannot see A\'s avatar', (await as(B, `select * from public.profiles where id = '${A}'`)).rows.length === 0)
+check('B cannot change A\'s avatar', (await as(B, `update public.profiles set avatar = '{}'::jsonb where id = '${A}' returning id`)).rows.length === 0)
+check('an avatar must be an object', await fails(A, `update public.profiles set avatar = '"male"'::jsonb where id = '${A}'`))
+check('B cannot create a profile for A', await fails(B, `insert into public.profiles (id) values ('${A}')`))
+
 // Sharing: A invites B into A's troop.
 await as(A, `insert into public.troop_members (troop_id, user_id) values ('${troopA}', '${B}')`)
+check('after sharing, B sees A\'s avatar', (await as(B, `select avatar from public.profiles where id = '${A}'`)).rows[0]?.avatar?.hair === 'bob')
+check('after sharing, B still cannot change A\'s avatar', (await as(B, `update public.profiles set avatar = '{}'::jsonb where id = '${A}' returning id`)).rows.length === 0)
 check('after sharing, B sees A\'s monkeys', (await as(B, `select * from public.monkeys where troop_id = '${troopA}'`)).rows.length === 2)
 check('B can add to the shared troop', (await as(B, `insert into public.monkeys (troop_id, title) values ('${troopA}', 'Trim tree') returning id`)).rows.length === 1)
 const leave = await as(B, `delete from public.troop_members where troop_id = '${troopA}' and user_id = '${B}' returning user_id`)
 check('B can leave the shared troop', leave.rows.length === 1)
 check('after leaving, B sees nothing of A\'s', (await as(B, `select * from public.monkeys where troop_id = '${troopA}'`)).rows.length === 0)
+check('after leaving, B cannot see A\'s avatar', (await as(B, `select * from public.profiles where id = '${A}'`)).rows.length === 0)
 
 const ownerLeave = await as(A, `delete from public.troop_members where troop_id = '${troopB}' and user_id = '${B}' returning user_id`)
 check('A cannot remove B from B\'s troop', ownerLeave.rows.length === 0)

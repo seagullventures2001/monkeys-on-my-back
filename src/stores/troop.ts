@@ -27,6 +27,7 @@ export const useTroopStore = defineStore('troop', () => {
   const nudge = computed(() => pickNudge(monkeys.value))
   const mode = computed(() => repo.value.kind)
   const email = computed(() => session.value?.user.email ?? null)
+  const userId = computed(() => (repo.value.kind === 'supabase' ? (session.value?.user.id ?? null) : null))
 
   async function run<T>(fn: () => Promise<T>): Promise<T | undefined> {
     error.value = null
@@ -150,6 +151,7 @@ export const useTroopStore = defineStore('troop', () => {
     nudge,
     mode,
     email,
+    userId,
     loading,
     error,
     lastFed,

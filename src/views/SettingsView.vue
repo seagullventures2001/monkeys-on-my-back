@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useTroopStore } from '@/stores/troop'
+import { useAvatarStore } from '@/stores/avatar'
+import AvatarFigure from '@/components/AvatarFigure.vue'
 import { supabaseConfigured } from '@/lib/supabase'
 import { localRepo } from '@/data/localRepo'
 import { notificationsSupported, requestNotificationPermission, scheduleReminders } from '@/lib/notifications'
@@ -8,6 +10,7 @@ import { loadPrefs, savePrefs, type Frequency } from '@/lib/reminders'
 import { playOne, setSoundEnabled, soundEnabled, unlockAudio } from '@/lib/sound'
 
 const store = useTroopStore()
+const me = useAvatarStore()
 
 // e.g. "0.8.0 (2257a31)": the app version plus the git commit it was built from.
 const version = `${__APP_VERSION__} (${__APP_COMMIT__})`
@@ -107,6 +110,17 @@ async function saveReminders() {
       <p v-if="store.error" class="error" role="alert">{{ store.error }}</p>
     </section>
 
+    <RouterLink to="/avatar" class="card avatar-link">
+      <span class="avatar-head" aria-hidden="true"><AvatarFigure v-if="me.avatar" :avatar="me.avatar" part="head" /></span>
+      <span class="switch-text">
+        <h2>Your avatar</h2>
+        <span class="muted small">Change your hair, clothes and shoes</span>
+      </span>
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" class="chev">
+        <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+      </svg>
+    </RouterLink>
+
     <section class="card">
       <label class="switch-row" for="sounds-toggle">
         <span class="switch-text">
@@ -161,6 +175,15 @@ async function saveReminders() {
         <p>
           A job you keep putting off: clean the BBQ, gurney the house, finish that course. Not urgent, but it nags at you.
           The longer it waits, the bigger and sadder its monkey gets: happy, then stressed, then in tears.
+        </p>
+      </details>
+
+      <details>
+        <summary>Your avatar</summary>
+        <p>
+          That's you standing by your tree (and driving the bus to your troop). Tap the pencil next to your head to
+          change your hair, skin, shirt, pants and shoes. When you're signed in it's saved to your account, so it follows
+          you to other devices.
         </p>
       </details>
 
@@ -258,6 +281,31 @@ h1 {
 .card p {
   margin: 0;
   line-height: 1.45;
+}
+
+.avatar-link {
+  flex-direction: row;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.avatar-link .switch-text {
+  flex: 1;
+}
+
+.avatar-head {
+  flex: none;
+  width: 48px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--leaf-100);
+  overflow: hidden;
+}
+
+.chev {
+  flex: none;
+  color: var(--leaf-700);
 }
 
 .row {

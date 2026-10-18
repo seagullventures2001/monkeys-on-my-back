@@ -13,6 +13,7 @@ Open the URL Vite prints (usually http://localhost:5173). It starts in **on-devi
 
 ## What's in this first version
 
+- **Your avatar**: the first time the app opens you pick male or female, then a cartoon you stands in front of your tree (behind the monkeys, so they stay clear), drives the safari bus, and waits by the first tree in your Troop. The pencil by your head opens the avatar page: body, skin, hair style and colour, shirt and colour, shorts or jeans, shoes or boots. Saved on the device and, when signed in, on your profile (`profiles.avatar`), where people you share a troop with can see it. Items are stored as ids (`src/lib/avatar.ts`), ready for unlockable or paid outfits later.
 - **Tree screen**: monkeys sit on branches, oldest at the top. They grow bigger with age and their mood slides: very happy (under 2 weeks), happy (under 6), stressed (under 12), then crying.
 - **Feed a banana**: the monkey grabs a banana and leaps off; the rest shuffle up. Undo for a few seconds afterwards.
 - **Add a monkey**: job, size (15 min → full day, or ongoing), and how long it's *already* been nagging you, so old jobs start at the right size.
@@ -29,8 +30,8 @@ Open the URL Vite prints (usually http://localhost:5173). It starts in **on-devi
 
 ## Versions
 
-The bottom of Settings shows something like **version 0.9.1 (2257a31)**:
-- `0.9.1` is `version` in `package.json`, bumped with each release.
+The bottom of Settings shows something like **version 0.10.0 (2257a31)**:
+- `0.10.0` is `version` in `package.json`, bumped with each release.
 - `2257a31` is the git commit the build was made from (on Vercel it's the commit that was deployed), so you can find the exact code with `git show 2257a31`.
 
 ## Project layout
@@ -59,7 +60,7 @@ npm run test:db   # runs the migration in an in-process Postgres and checks the 
 npm run build     # type-check + production build
 ```
 
-All three pass in this version.
+All three pass in this version (`test:db` now also checks who can see and change avatars).
 
 ## Turning on accounts (Supabase)
 

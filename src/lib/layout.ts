@@ -7,7 +7,8 @@ export const TREE_H = 380
 /** Seats on the branches, best (top of the tree) first. cx = centre, y = where the monkey's bottom sits. */
 const SEATS: { cx: number; y: number }[] = [
   { cx: 240, y: 110 },
-  { cx: 112, y: 140 },
+  // Kept in from the edge so your avatar's face (left of the tree) stays clear.
+  { cx: 150, y: 140 },
   { cx: 296, y: 200 },
   { cx: 72, y: 250 },
   { cx: 214, y: 200 },

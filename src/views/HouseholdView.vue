@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import MonkeyFigure from '@/components/MonkeyFigure.vue'
+import AvatarFigure from '@/components/AvatarFigure.vue'
+import { useAvatarStore } from '@/stores/avatar'
+import { defaultAvatar } from '@/lib/avatar'
+
+// Each person stands by their own tree. Yours is real; the other is a placeholder until Pro.
+const me = useAvatarStore()
 </script>
 
 <template>
@@ -10,6 +16,11 @@ import MonkeyFigure from '@/components/MonkeyFigure.vue'
 
     <div class="art" aria-hidden="true">
       <div class="tree-pair">
+        <span v-if="me.avatar" class="person you"><AvatarFigure :avatar="me.avatar" /></span>
+        <span v-if="me.avatar" class="person them">
+          <AvatarFigure :avatar="defaultAvatar(me.avatar.body === 'male' ? 'female' : 'male')" />
+          <span class="q">?</span>
+        </span>
         <svg viewBox="0 0 140 150" class="mini-tree">
           <circle cx="70" cy="55" r="48" fill="var(--leaf-300)" />
           <rect x="62" y="70" width="16" height="80" rx="4" fill="var(--bark)" />
@@ -24,6 +35,7 @@ import MonkeyFigure from '@/components/MonkeyFigure.vue'
         <span class="m m2"><MonkeyFigure :mood="1" pose="rest" /></span>
       </div>
     </div>
+    <p v-if="me.avatar" class="caption muted">You by your tree, and whoever you share with by theirs.</p>
 
     <ul class="features">
       <li>
@@ -79,6 +91,42 @@ h1 {
 
 .mini-tree {
   width: 130px;
+}
+
+.person {
+  position: absolute;
+  bottom: -4px;
+  height: 120px;
+  aspect-ratio: 120 / 300;
+  z-index: 1;
+}
+
+.you {
+  left: -30px;
+}
+
+.them {
+  right: -30px;
+  filter: grayscale(1);
+  opacity: 0.35;
+}
+
+.q {
+  position: absolute;
+  left: 50%;
+  top: -30px;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--leaf-900);
+}
+
+.caption {
+  margin: -8px 0 16px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .m {

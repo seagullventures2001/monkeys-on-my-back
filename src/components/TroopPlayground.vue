@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import MonkeyFigure from './MonkeyFigure.vue'
+import AvatarFigure from './AvatarFigure.vue'
+import { useAvatarStore } from '@/stores/avatar'
 import PeeledBanana from './PeeledBanana.vue'
 import type { Monkey } from '@/lib/monkey'
 import { GROUND_Y, SCENE_H, SEGMENT_W, placeTroop, waited, type PlaygroundMonkey } from '@/lib/playground'
@@ -21,7 +23,17 @@ onMounted(() => {
 })
 onBeforeUnmount(() => resize?.disconnect())
 
-const scene = computed(() => placeTroop(props.monkeys, visibleWidth.value))
+// You stand on the grass just before the first tree, so the scene starts a little further in.
+const me = useAvatarStore()
+const AVATAR_H = 250
+const lead = computed(() => (me.avatar ? 96 : 0))
+
+const placed = computed(() => placeTroop(props.monkeys, Math.max(0, visibleWidth.value - lead.value)))
+const scene = computed(() => {
+  const p = placed.value
+  const dx = lead.value
+  return { ...p, width: p.width + dx, monkeys: p.monkeys.map((m) => ({ ...m, x: m.x + dx })) }
+})
 const selectedId = ref<string | null>(null)
 const selected = computed(() => scene.value.monkeys.find((p) => p.monkey.id === selectedId.value) ?? null)
 
@@ -73,7 +85,7 @@ const bubble = computed(() => {
   }
 })
 
-const segments = computed(() => Array.from({ length: scene.value.segments }, (_, i) => i * SEGMENT_W))
+const segments = computed(() => Array.from({ length: scene.value.segments }, (_, i) => lead.value + i * SEGMENT_W))
 </script>
 
 <template>
@@ -81,6 +93,7 @@ const segments = computed(() => Array.from({ length: scene.value.segments }, (_,
     <div class="scene" :style="{ width: `${scene.width}px`, height: `${SCENE_H}px` }" @click.self="selectedId = null">
       <svg class="backdrop" :viewBox="`0 0 ${scene.width} ${SCENE_H}`" :width="scene.width" :height="SCENE_H" aria-hidden="true">
         <!-- distant hills -->
+        <ellipse v-if="lead" cx="20" :cy="GROUND_Y + 30" rx="140" ry="100" fill="var(--leaf-200)" />
         <ellipse v-for="x in segments" :key="`h${x}`" :cx="x + 160" :cy="GROUND_Y + 30" rx="260" ry="120" fill="var(--leaf-200)" />
         <!-- ground -->
         <rect x="0" :y="GROUND_Y - 4" :width="scene.width" :height="SCENE_H - GROUND_Y + 4" fill="#b9d4a4" />
@@ -106,6 +119,16 @@ const segments = computed(() => Array.from({ length: scene.value.segments }, (_,
           </g>
         </g>
       </svg>
+
+      <div
+        v-if="me.avatar"
+        class="me"
+        :style="{ left: '8px', top: `${GROUND_Y + 14 - AVATAR_H}px`, height: `${AVATAR_H}px` }"
+        role="img"
+        aria-label="You"
+      >
+        <AvatarFigure :avatar="me.avatar" />
+      </div>
 
       <button
         v-for="p in scene.monkeys"
@@ -170,6 +193,12 @@ const segments = computed(() => Array.from({ length: scene.value.segments }, (_,
 .backdrop {
   position: absolute;
   inset: 0;
+}
+
+.me {
+  position: absolute;
+  aspect-ratio: 120 / 300;
+  pointer-events: none;
 }
 
 .monkey {

@@ -12,10 +12,15 @@ import AddMonkeyDialog from '@/components/AddMonkeyDialog.vue'
 import BananaIcon from '@/components/BananaIcon.vue'
 import FeedCelebration from '@/components/FeedCelebration.vue'
 import WelcomeDialog from '@/components/WelcomeDialog.vue'
+import AvatarFigure from '@/components/AvatarFigure.vue'
+import AvatarSetupDialog from '@/components/AvatarSetupDialog.vue'
+import { useAvatarStore } from '@/stores/avatar'
+import { defaultAvatar, type Body } from '@/lib/avatar'
 import { unlockAudio } from '@/lib/sound'
 import type { Monkey } from '@/lib/monkey'
 
 const store = useTroopStore()
+const me = useAvatarStore()
 const selectedId = ref<string | null>(null)
 const adding = ref(false)
 const toast = ref<{ id: string; title: string } | null>(null)
@@ -33,7 +38,88 @@ function seenWelcome(): boolean {
   }
 }
 const welcomeDismissed = ref(seenWelcome())
-const showWelcome = computed(() => !welcomeDismissed.value && !store.loading && store.monkeys.length === 0)
+// Order on first open: pick your avatar, then the welcome (if the tree is empty), then the edit tip.
+const showWelcome = computed(
+  () => !welcomeDismissed.value && me.checked && !me.needsSetup && !store.loading && store.monkeys.length === 0,
+)
+
+function pickBody(body: Body) {
+  me.set(defaultAvatar(body))
+}
+
+// A one-off pointer to the little edit button next to your avatar.
+const TIP_KEY = 'momb.avatarTip.v1'
+function seenTip(): boolean {
+  try {
+    return localStorage.getItem(TIP_KEY) === '1'
+  } catch {
+    return true
+  }
+}
+const tipDismissed = ref(seenTip())
+const showTip = computed(
+  () =>
+    !!me.avatar &&
+    !tipDismissed.value &&
+    !showWelcome.value &&
+    !adding.value &&
+    !celebrating.value &&
+    !selectedId.value,
+)
+// Sizing: you stand from the top of the tree down to just above the menu, as tall as the
+// screen allows (aiming for about 70% of it), with your feet towards the camera.
+// The monkeys are drawn on top of you, so they're always clear and tappable.
+const treeWrap = ref<HTMLElement | null>(null)
+const meVars = ref<Record<string, string>>({})
+const AVATAR_RATIO = 120 / 300
+function measureMe() {
+  const wrap = treeWrap.value
+  if (!wrap) return
+  const vh = window.innerHeight
+  const treeTop = wrap.getBoundingClientRect().top + window.scrollY
+  const treeH = wrap.offsetHeight
+  const treeW = wrap.offsetWidth
+  const navH = document.querySelector('.tabs')?.getBoundingClientRect().height ?? 80
+  const room = vh - treeTop - navH - 6
+  const h = Math.round(Math.min(Math.max(room, treeH * 0.7), vh * 0.7))
+  const w = h * AVATAR_RATIO
+  // Head centred over the left edge of the tree, a little of you past the screen edge is fine.
+  // ...but never so far that your head is cut off.
+  const left = Math.round(Math.max(treeW * 0.15 - w / 2, -w * 0.2 - 8))
+  meVars.value = {
+    '--me-h': `${h}px`,
+    '--me-w': `${Math.round(w)}px`,
+    '--me-left': `${left}px`,
+    '--me-drop': `${Math.max(0, h - treeH)}px`,
+    // Keep the panel's text clear of your legs.
+    '--me-pad': `${Math.max(20, Math.round(20 + left + w * 0.76 + 8))}px`,
+  }
+}
+let pageResize: ResizeObserver | undefined
+onMounted(() => {
+  measureMe()
+  window.addEventListener('resize', measureMe)
+  pageResize = new ResizeObserver(() => measureMe())
+  const page = treeWrap.value?.parentElement
+  if (page) pageResize.observe(page)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', measureMe)
+  pageResize?.disconnect()
+})
+watch(
+  () => [me.avatar !== null, store.nudge?.monkey.id, store.loading, store.onBack.length > 0],
+  () => nextTick(measureMe),
+)
+
+function closeTip() {
+  tipDismissed.value = true
+  try {
+    localStorage.setItem(TIP_KEY, '1')
+  } catch {
+    // Shows again next time; harmless.
+  }
+}
 function closeWelcome(addNow: boolean) {
   welcomeDismissed.value = true
   try {
@@ -188,7 +274,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <main class="page tree-page" :style="{ '--sheet-space': `${sheetHeight}px` }">
+  <main class="page tree-page" :class="{ 'with-me': me.avatar }" :style="{ '--sheet-space': `${sheetHeight}px`, ...meVars }">
     <header class="top">
       <div class="brand">
         <RouterLink to="/settings" class="gear" aria-label="Settings">
@@ -223,8 +309,29 @@ onBeforeUnmount(() => {
 
     <NudgeCard v-if="store.nudge" :nudge="store.nudge" class="nudge" @open="select" />
 
-    <div class="tree-wrap">
-      <TroopTree :monkeys="troop.onTree" :selected-id="selectedId" :happy-id="happyId" @select="select" />
+    <div ref="treeWrap" class="tree-wrap">
+      <TroopTree :monkeys="troop.onTree" :selected-id="selectedId" :happy-id="happyId" @select="select">
+        <template #behind>
+          <!-- You, standing in front of your tree like someone's taking your photo. -->
+          <div v-if="me.avatar" class="me">
+            <AvatarFigure :avatar="me.avatar" />
+            <RouterLink to="/avatar" class="edit-me" aria-label="Edit your avatar" @click="closeTip">
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" />
+              </svg>
+            </RouterLink>
+            <div v-if="showTip" class="tip" role="status">
+              <svg class="tip-arrow" width="44" height="40" viewBox="0 0 44 40" aria-hidden="true">
+                <path d="M38 36 C38 18 26 8 8 6" fill="none" stroke="var(--leaf-900)" stroke-width="3" stroke-linecap="round" />
+                <path d="M15 1 L6 6 L14 12" fill="none" stroke="var(--leaf-900)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <strong>This is you!</strong>
+              <span>Tap the pencil to change your hair and clothes.</span>
+              <button type="button" class="btn-link tip-ok" @click="closeTip">Got it</button>
+            </div>
+          </div>
+        </template>
+      </TroopTree>
     </div>
 
     <button v-if="troop.waiting.length" type="button" class="waiting" @click="showWaiting = true">
@@ -288,6 +395,7 @@ onBeforeUnmount(() => {
       </section>
     </Transition>
 
+    <AvatarSetupDialog v-if="me.needsSetup" @pick="pickBody" />
     <WelcomeDialog v-if="showWelcome" @add="closeWelcome(true)" @close="closeWelcome(false)" />
     <AddMonkeyDialog :open="adding" @close="adding = false" @add="add" />
     <Transition name="celebrate">
@@ -509,6 +617,99 @@ onBeforeUnmount(() => {
 .tree-wrap {
   position: relative;
   margin-top: 8px;
+}
+
+/* Your avatar stands in front of the tree and the panel below it, but behind the monkeys,
+   so every monkey stays clear and tappable. */
+.with-me .tree-wrap {
+  z-index: 2;
+}
+
+.with-me .panel {
+  padding-left: var(--me-pad, 20px);
+}
+
+/* The "more in the bushes" bar stays on top of your legs. */
+.with-me .waiting {
+  position: relative;
+  z-index: 3;
+}
+
+.me {
+  position: absolute;
+  top: 0;
+  left: var(--me-left, -40px);
+  width: var(--me-w, 180px);
+  height: var(--me-h, 450px);
+  pointer-events: none;
+}
+
+.edit-me {
+  position: absolute;
+  z-index: 3;
+  left: max(16%, calc(20px - var(--me-left, 0px)));
+  top: 1%;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--leaf-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(30, 58, 43, 0.25);
+}
+
+.edit-me::before {
+  /* Bigger tap target than the drawn circle. */
+  content: '';
+  position: absolute;
+  inset: -6px;
+}
+
+.tip {
+  position: absolute;
+  z-index: 4;
+  left: calc(max(16%, calc(20px - var(--me-left, 0px))) + 30px);
+  top: calc(1% + 52px);
+  width: 190px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--banana);
+  color: var(--leaf-900);
+  box-shadow: 0 6px 18px rgba(30, 58, 43, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  pointer-events: auto;
+  animation: tip-in 0.35s ease-out 0.4s both;
+}
+
+.tip strong {
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.tip-arrow {
+  position: absolute;
+  left: -36px;
+  top: -30px;
+}
+
+.tip-ok {
+  align-self: flex-end;
+  min-height: 36px;
+}
+
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 
 .panel {
